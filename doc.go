@@ -14,6 +14,34 @@
 
 package bson
 
+const (
+	// bson type
+	bsonTypeEOD        = byte(0x00) // end of doc
+	bsonTypeDouble     = byte(0x01)
+	bsonTypeString     = byte(0x02)
+	bsonTypeDoc        = byte(0x03)
+	bsonTypeArray      = byte(0x04)
+	bsonTypeBinary     = byte(0x05)
+	bsonTypeUndefined  = byte(0x06) // deprecated
+	bsonTypeObjectId   = byte(0x07)
+	bsonTypeBool       = byte(0x08)
+	bsonTypeDate       = byte(0x09)
+	bsonTypeNull       = byte(0x0A)
+	bsonTypeRegex      = byte(0x0B)
+	bsonTypeDBPointer  = byte(0x0C) // deprecated
+	bsonTypeCode       = byte(0x0D)
+	bsonTypeSymbol     = byte(0x0E) // deprecated
+	bsonTypeCodeWScope = byte(0x0F)
+	bsonTypeInt32      = byte(0x10)
+	bsonTypeTimestamp  = byte(0x11)
+	bsonTypeInt64      = byte(0x12)
+	bsonTypeMaxKey     = byte(0x7F)
+	bsonTypeMinKey     = byte(0xFF)
+
+	// end of cstring
+	eos = byte(0x00)
+)
+
 type Doc struct {
 	raw []byte
 }
@@ -57,7 +85,7 @@ func (doc *Doc) appendObjectId(name string, value ObjectId) {
 
 }
 
-func (doc *Doc) appendBoolean(name string, value bool) {
+func (doc *Doc) appendBool(name string, value bool) {
 
 }
 
