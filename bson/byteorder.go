@@ -27,6 +27,9 @@ type ByteOrder interface {
 	IsLittleEndian() bool
 }
 
+type littleEndian struct{}
+type bigEndian struct{}
+
 var LittleEndian littleEndian
 var BigEndian bigEndian
 var byteOrder ByteOrder
@@ -42,9 +45,6 @@ func init() {
 		byteOrder = LittleEndian
 	}
 }
-
-type littleEndian struct{}
-type bigEndian struct{}
 
 func GetByteOrder() ByteOrder {
 	return byteOrder
@@ -74,11 +74,11 @@ func (le littleEndian) AppendFloat64(b []byte, v float64) []byte {
 	return le.AppendInt64(b, u)
 }
 
-func (le littleEndian) IsBigEndian() {
+func (le littleEndian) IsBigEndian() bool {
 	return false
 }
 
-func (le littleEndian) IsLittleEndian() {
+func (le littleEndian) IsLittleEndian() bool {
 	return true
 }
 
@@ -98,10 +98,10 @@ func (be bigEndian) AppendFloat64(b []byte, v float64) []byte {
 	return be.AppendInt64(b, u)
 }
 
-func (be bigEndian) IsBigEndian() {
+func (be bigEndian) IsBigEndian() bool {
 	return true
 }
 
-func (be bigEndian) IsLittleEndian() {
+func (be bigEndian) IsLittleEndian() bool {
 	return false
 }
