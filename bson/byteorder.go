@@ -75,7 +75,7 @@ func (le littleEndian) AppendFloat64(b []byte, v float64) []byte {
 	return le.AppendInt64(b, u)
 }
 
-func (le littleEndian) SetInt32(b []byte, pos int, v int32)  {
+func (le littleEndian) SetInt32(b []byte, pos int, v int32) {
 	b[pos+0] = byte(v)
 	b[pos+1] = byte(v >> 8)
 	b[pos+2] = byte(v >> 16)
@@ -106,7 +106,7 @@ func (be bigEndian) AppendFloat64(b []byte, v float64) []byte {
 	return be.AppendInt64(b, u)
 }
 
-func (be bigEndian) SetInt32(b []byte, pos int, v int32)  {
+func (be bigEndian) SetInt32(b []byte, pos int, v int32) {
 	b[pos+0] = byte(v >> 24)
 	b[pos+1] = byte(v >> 16)
 	b[pos+2] = byte(v >> 8)

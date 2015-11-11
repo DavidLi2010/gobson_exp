@@ -48,12 +48,12 @@ func NewBson() *Bson {
 }
 
 func NewBsonWithOrder(order ByteOrder) *Bson {
-	bson:=&Bson{make([]byte, 0, initialBufferSize), order}
+	bson := &Bson{make([]byte, 0, initialBufferSize), order}
 	bson.reserveInt32()
 	return bson
 }
 
-func (bson *Bson) Finish()  {
+func (bson *Bson) Finish() {
 	const eod = 0x00 // end of doc
 	bson.raw = append(bson.raw, eod)
 	bson.setInt32(0, int32(len(bson.raw)))
