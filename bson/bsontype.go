@@ -52,9 +52,6 @@ const (
 	BinaryTypeUser BinaryType = 0x80
 )
 
-// end of cstring
-const eos byte = 0x00
-
 type Date int64
 
 type RegEx struct {

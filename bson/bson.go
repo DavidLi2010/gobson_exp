@@ -21,13 +21,42 @@ type Bson struct {
 	order ByteOrder
 }
 
+const initialBufferSize = 64
+
 func (bson *Bson) byteOrder() ByteOrder {
 	return bson.order
 }
 
 func (bson *Bson) appendCString(value string) {
+	const eos byte = 0x00 // end of cstring
 	bson.raw = append(bson.raw, []byte(value)...)
 	bson.raw = append(bson.raw, eos)
+}
+
+func (bson *Bson) reserveInt32() (pos int) {
+	pos = len(bson.raw)
+	bson.raw = append(bson.raw, 0, 0, 0, 0)
+	return pos
+}
+
+func (bson *Bson) setInt32(pos int, v int32) {
+	bson.order.SetInt32(bson.raw, pos, v)
+}
+
+func NewBson() *Bson {
+	return NewBsonWithOrder(GetByteOrder())
+}
+
+func NewBsonWithOrder(order ByteOrder) *Bson {
+	bson:=&Bson{make([]byte, 0, initialBufferSize), order}
+	bson.reserveInt32()
+	return bson
+}
+
+func (bson *Bson) Finish()  {
+	const eod = 0x00 // end of doc
+	bson.raw = append(bson.raw, eod)
+	bson.setInt32(0, int32(len(bson.raw)))
 }
 
 func (bson *Bson) AppendDouble(name string, value float64) {

@@ -23,6 +23,7 @@ type ByteOrder interface {
 	AppendInt32([]byte, int32) []byte
 	AppendInt64([]byte, int64) []byte
 	AppendFloat64([]byte, float64) []byte
+	SetInt32([]byte, int, int32)
 	IsBigEndian() bool
 	IsLittleEndian() bool
 }
@@ -74,6 +75,13 @@ func (le littleEndian) AppendFloat64(b []byte, v float64) []byte {
 	return le.AppendInt64(b, u)
 }
 
+func (le littleEndian) SetInt32(b []byte, pos int, v int32)  {
+	b[pos+0] = byte(v)
+	b[pos+1] = byte(v >> 8)
+	b[pos+2] = byte(v >> 16)
+	b[pos+3] = byte(v >> 24)
+}
+
 func (le littleEndian) IsBigEndian() bool {
 	return false
 }
@@ -96,6 +104,13 @@ func (be bigEndian) AppendInt64(b []byte, v int64) []byte {
 func (be bigEndian) AppendFloat64(b []byte, v float64) []byte {
 	u := int64(math.Float64bits(v))
 	return be.AppendInt64(b, u)
+}
+
+func (be bigEndian) SetInt32(b []byte, pos int, v int32)  {
+	b[pos+0] = byte(v >> 24)
+	b[pos+1] = byte(v >> 16)
+	b[pos+2] = byte(v >> 8)
+	b[pos+3] = byte(v)
 }
 
 func (be bigEndian) IsBigEndian() bool {
