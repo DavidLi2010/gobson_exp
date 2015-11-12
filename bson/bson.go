@@ -59,6 +59,10 @@ func (bson *Bson) Finish() {
 	bson.setInt32(0, int32(len(bson.raw)))
 }
 
+func (bson *Bson) Raw() []byte {
+	return bson.raw
+}
+
 func (bson *Bson) AppendDouble(name string, value float64) {
 	bson.raw = append(bson.raw, byte(BsonTypeDouble))
 	bson.appendCString(name)

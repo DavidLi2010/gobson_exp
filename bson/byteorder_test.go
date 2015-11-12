@@ -57,7 +57,7 @@ func TestAppend(t *testing.T) {
 			So(b[1], ShouldEqual, 0x34)
 			So(b[2], ShouldEqual, 0x56)
 			So(b[3], ShouldEqual, 0x78)
-		} else  {
+		} else {
 			So(byteOrder.IsBigEndian(), ShouldBeTrue)
 
 			p := *(*byte)(unsafe.Pointer(&x))
