@@ -43,8 +43,8 @@ func (bson *Bson) reserveInt32() (pos int) {
 	return pos
 }
 
-func (bson *Bson) setInt32(pos int, v int32) {
-	bson.order.SetInt32(bson.raw, pos, v)
+func (bson *Bson) setInt32(pos int, value int32) {
+	bson.order.SetInt32(bson.raw, pos, value)
 }
 
 func NewBson() *Bson {
@@ -70,7 +70,7 @@ func (bson *Bson) checkBeforeAppend() {
 func (bson *Bson) Finish() {
 	bson.checkBeforeAppend()
 	bson.raw = append(bson.raw, eod)
-	bson.setInt32(0, int32(len(bson.raw)-bson.offset))
+	bson.setInt32(bson.offset, int32(len(bson.raw)-bson.offset))
 	bson.finished = true
 }
 
@@ -159,6 +159,9 @@ func (bson *Bson) AppendArrayEnd() {
 
 func (bson *Bson) AppendBinary(name string, value Binary) {
 	bson.checkBeforeAppend()
+	if value.Data == nil{
+		panic("binary is null")
+	}
 	bson.raw = append(bson.raw, byte(BsonTypeBinary))
 	bson.appendCString(name)
 	bson.raw = bson.order.AppendInt32(bson.raw, int32(len(value.Data)))
@@ -225,7 +228,7 @@ func (bson *Bson) AppendTimestamp(name string, value Timestamp) {
 
 func (bson *Bson) AppendInt64(name string, value int64) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeTimestamp))
+	bson.raw = append(bson.raw, byte(BsonTypeInt64))
 	bson.appendCString(name)
 	bson.raw = bson.order.AppendInt64(bson.raw, value)
 }
