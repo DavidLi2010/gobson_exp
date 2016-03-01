@@ -37,7 +37,7 @@ func TestSingleBsonAppend(t *testing.T) {
 		{bson.BsonTypeRegEx, "_", bson.RegEx{Pattern: "pat", Options: "opt"}, []byte("\x10\x00\x00\x00\x0B_\x00pat\x00opt\x00\x00")},
 		{bson.BsonTypeInt32, "_", int32(12345), []byte("\x0C\x00\x00\x00\x10_\x00\x39\x30\x00\x00\x00")},
 		{bson.BsonTypeInt64, "_", int64(12345), []byte("\x10\x00\x00\x00\x12_\x00\x39\x30\x00\x00\x00\x00\x00\x00\x00")},
-		{bson.BsonTypeTimestamp, "_", bson.Timestamp{Second:10, Increment:20}, []byte("\x10\x00\x00\x00\x11_\x00\x14\x00\x00\x00\x0A\x00\x00\x00\x00")},
+		{bson.BsonTypeTimestamp, "_", bson.Timestamp{Second: 10, Increment: 20}, []byte("\x10\x00\x00\x00\x11_\x00\x14\x00\x00\x00\x0A\x00\x00\x00\x00")},
 		{bson.BsonTypeMaxKey, "_", "", []byte("\x08\x00\x00\x00\x7F_\x00\x00")},
 		{bson.BsonTypeMinKey, "_", "", []byte("\x08\x00\x00\x00\xFF_\x00\x00")},
 	}

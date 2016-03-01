@@ -19,62 +19,88 @@ import (
 	"unsafe"
 
 	. "github.com/DavidLi2010/gobson_exp/bson"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestByteOrder(t *testing.T) {
-	Convey("test byte order", t, func() {
-		So(BigEndian.IsBigEndian(), ShouldBeTrue)
-		So(BigEndian.IsLittleEndian(), ShouldBeFalse)
-		So(LittleEndian.IsBigEndian(), ShouldBeFalse)
-		So(LittleEndian.IsLittleEndian(), ShouldBeTrue)
+	if BigEndian.IsBigEndian() == false {
+		t.Errorf("BigEndian.IsBigEndian() == false")
+	}
 
-		byteOrder := GetByteOrder()
-		t := byteOrder.IsLittleEndian() || byteOrder.IsBigEndian()
-		So(t, ShouldBeTrue)
-		So(byteOrder.IsLittleEndian(), ShouldNotEqual, byteOrder.IsBigEndian())
-	})
+	if BigEndian.IsLittleEndian() == true {
+		t.Errorf("BigEndian.IsLittleEndian() == true")
+	}
+
+	if LittleEndian.IsBigEndian() == true {
+		t.Errorf("LittleEndian.IsBigEndian() == true")
+	}
+
+	if LittleEndian.IsLittleEndian() == false {
+		t.Errorf("LittleEndian.IsLittleEndian() == false")
+	}
+
+	byteOrder := GetByteOrder()
+	if byteOrder.IsLittleEndian() {
+		if byteOrder.IsBigEndian() {
+			t.Errorf("invalid byte order: little endian")
+		}
+	} else {
+		if byteOrder.IsLittleEndian() {
+			t.Errorf("invalid byte order: big endian")
+		}
+	}
 }
 
 func TestAppend(t *testing.T) {
-	Convey("test int32", t, func() {
-		x := int32(0x12345678)
-		b := make([]byte, 0, 4)
-		byteOrder := GetByteOrder()
-		if byteOrder.IsLittleEndian() {
-			p := *(*byte)(unsafe.Pointer(&x))
-			So(p, ShouldEqual, 0x78)
-
-			b = byteOrder.AppendInt32(b, x)
-			So(b[0], ShouldEqual, 0x78)
-			So(b[1], ShouldEqual, 0x56)
-			So(b[2], ShouldEqual, 0x34)
-			So(b[3], ShouldEqual, 0x12)
-
-			b = make([]byte, 0, 4)
-			b = BigEndian.AppendInt32(b, x)
-			So(b[0], ShouldEqual, 0x12)
-			So(b[1], ShouldEqual, 0x34)
-			So(b[2], ShouldEqual, 0x56)
-			So(b[3], ShouldEqual, 0x78)
-		} else {
-			So(byteOrder.IsBigEndian(), ShouldBeTrue)
-
-			p := *(*byte)(unsafe.Pointer(&x))
-			So(p, ShouldEqual, 0x12)
-
-			b = byteOrder.AppendInt32(b, x)
-			So(b[0], ShouldEqual, 0x12)
-			So(b[1], ShouldEqual, 0x34)
-			So(b[2], ShouldEqual, 0x56)
-			So(b[3], ShouldEqual, 0x78)
-
-			b = make([]byte, 0, 4)
-			b = LittleEndian.AppendInt32(b, x)
-			So(b[0], ShouldEqual, 0x78)
-			So(b[1], ShouldEqual, 0x56)
-			So(b[2], ShouldEqual, 0x34)
-			So(b[3], ShouldEqual, 0x12)
+	x := int32(0x12345678)
+	b := make([]byte, 0, 4)
+	byteOrder := GetByteOrder()
+	if byteOrder.IsLittleEndian() {
+		p := *(*byte)(unsafe.Pointer(&x))
+		if p != 0x78 {
+			t.Errorf("invalid endian")
 		}
-	})
+
+		b = byteOrder.AppendInt32(b, x)
+		if b[0] != 0x78 ||
+			b[1] != 0x56 ||
+			b[2] != 0x34 ||
+			b[3] != 0x12 {
+			t.Errorf("LittleEndian.AppendInt32() error")
+		}
+
+		b = make([]byte, 0, 4)
+		b = BigEndian.AppendInt32(b, x)
+		if b[0] != 0x12 ||
+			b[1] != 0x34 ||
+			b[2] != 0x56 ||
+			b[3] != 0x78 {
+			t.Errorf("BigEndian.AppendInt32() error")
+		}
+	} else {
+		if byteOrder.IsBigEndian() != true {
+			t.Errorf("invalid endian")
+		}
+
+		p := *(*byte)(unsafe.Pointer(&x))
+		if p != 0x12 {
+			t.Errorf("invalid endian")
+		}
+
+		b = byteOrder.AppendInt32(b, x)
+		if b[0] != 0x12 ||
+			b[1] != 0x34 ||
+			b[2] != 0x56 ||
+			b[3] != 0x78 {
+			t.Errorf("BigEndian.AppendInt32() error")
+		}
+
+		b = make([]byte, 0, 4)
+		b = LittleEndian.AppendInt32(b, x)
+		if b[0] != 0x78 ||
+			b[1] != 0x56 ||
+			b[2] != 0x34 ||
+			b[3] != 0x12 {
+			t.Errorf("LittleEndian.AppendInt32() error")
+		}
+	}
 }

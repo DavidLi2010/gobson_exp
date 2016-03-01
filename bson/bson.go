@@ -159,7 +159,7 @@ func (bson *Bson) AppendArrayEnd() {
 
 func (bson *Bson) AppendBinary(name string, value Binary) {
 	bson.checkBeforeAppend()
-	if value.Data == nil{
+	if value.Data == nil {
 		panic("binary is null")
 	}
 	bson.raw = append(bson.raw, byte(BsonTypeBinary))

@@ -18,20 +18,61 @@ import (
 	"testing"
 
 	"github.com/DavidLi2010/gobson_exp/bson"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestBsonArray(t *testing.T) {
-	Convey("test double type", t, func() {
+	var tests = []struct {
+		bsonType bson.BsonType
+		value    interface{}
+		want     []byte
+	}{
+		{bson.BsonTypeDouble, 5.05, []byte("\x10\x00\x00\x00\x010\x00333333\x14@\x00")},
+	}
+
+	for _, test := range tests {
 		doc := bson.NewBsonArry()
-		doc.AppendDouble(5.05)
+		switch test.bsonType {
+		case bson.BsonTypeDouble:
+			doc.AppendDouble(test.value.(float64))
+		case bson.BsonTypeString:
+			doc.AppendString(test.value.(string))
+		case bson.BsonTypeBinary:
+			doc.AppendBinary(test.value.(bson.Binary))
+		case bson.BsonTypeObjectId:
+			doc.AppendObjectId(test.value.(bson.ObjectId))
+		case bson.BsonTypeBool:
+			doc.AppendBool(test.value.(bool))
+		case bson.BsonTypeDate:
+			doc.AppendDate(test.value.(bson.Date))
+		case bson.BsonTypeNull:
+			doc.AppendNull()
+		case bson.BsonTypeRegEx:
+			doc.AppendRegex(test.value.(bson.RegEx).Pattern, test.value.(bson.RegEx).Options)
+		case bson.BsonTypeInt32:
+			doc.AppendInt32(test.value.(int32))
+		case bson.BsonTypeInt64:
+			doc.AppendInt64(test.value.(int64))
+		case bson.BsonTypeTimestamp:
+			doc.AppendTimestamp(test.value.(bson.Timestamp))
+		case bson.BsonTypeMaxKey:
+			doc.AppendMaxKey()
+		case bson.BsonTypeMinKey:
+			doc.AppendMinKey()
+		default:
+			panic("invalid bson type")
+		}
 		doc.Finish()
 
 		data := doc.Raw()
-		if bson.IsLittleEndian() {
-			So(string(data), ShouldEqual, ("\x10\x00\x00\x00\x010\x00333333\x14@\x00"))
-		} else {
 
+		if len(data) != len(test.want) {
+			t.Errorf("type: %v\nexpected: %v\n  actual: %v", test.bsonType, test.want, data)
+		} else {
+			for i, b := range data {
+				if b != test.want[i] {
+					t.Errorf("type: %v\nexpected: %v\n  actual: %v", test.bsonType, test.want, data)
+				}
+			}
 		}
-	})
+	}
 }
