@@ -113,3 +113,7 @@ func (array *BsonArray) AppendMaxKey() {
 	array.bson.AppendMaxKey(strconv.Itoa(array.index))
 	array.index++
 }
+
+func (array *BsonArray) Iterator() *BsonIterator {
+	return NewBsonIterator(&(array.bson))
+}

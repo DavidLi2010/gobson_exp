@@ -244,3 +244,7 @@ func (bson *Bson) AppendMaxKey(name string) {
 	bson.raw = append(bson.raw, byte(BsonTypeMaxKey))
 	bson.appendCString(name)
 }
+
+func (bson *Bson) Iterator() *BsonIterator {
+	return NewBsonIterator(bson)
+}

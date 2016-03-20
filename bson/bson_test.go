@@ -72,7 +72,7 @@ func TestSingleBsonAppend(t *testing.T) {
 		case bson.BsonTypeMinKey:
 			doc.AppendMinKey(test.name)
 		default:
-			panic("invalid bson type")
+			t.Fatalf("invalid bson type")
 		}
 		doc.Finish()
 

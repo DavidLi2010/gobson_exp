@@ -1,2 +1,3 @@
 # gobson_exp
-golang implementation of bson, see http://bsonspec.org
+golang experimental implementation of bson for SequoiaDB,
+see http://bsonspec.org for bson specification

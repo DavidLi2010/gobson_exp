@@ -104,3 +104,55 @@ func TestAppend(t *testing.T) {
 		}
 	}
 }
+
+func TestLittleEndianReadValue(t *testing.T) {
+	in := int32(0x123456)
+	b := []byte{}
+	b = LittleEndian.AppendInt32(b, in)
+	out := LittleEndian.Int32(b)
+	if in != out {
+		t.Errorf("LittleEndian.Int32(%v)=%v", in, out)
+	}
+
+	in64 := int64(0x1234567890123456)
+	b = []byte{}
+	b = LittleEndian.AppendInt64(b, in64)
+	out64 := LittleEndian.Int64(b)
+	if in != out {
+		t.Errorf("LittleEndian.Int64(%v)=%v", in64, out64)
+	}
+
+	inf64 := float64(12345678.0123456)
+	b = []byte{}
+	b = LittleEndian.AppendFloat64(b, inf64)
+	outf64 := LittleEndian.Float64(b)
+	if in != out {
+		t.Errorf("LittleEndian.Float64(%v)=%v", inf64, outf64)
+	}
+}
+
+func TestBigEndianReadValue(t *testing.T) {
+	in := int32(0x123456)
+	b := []byte{}
+	b = BigEndian.AppendInt32(b, in)
+	out := BigEndian.Int32(b)
+	if in != out {
+		t.Errorf("BigEndian.Int32(%v)=%v", in, out)
+	}
+
+	in64 := int64(0x1234567890123456)
+	b = []byte{}
+	b = BigEndian.AppendInt64(b, in64)
+	out64 := BigEndian.Int64(b)
+	if in != out {
+		t.Errorf("BigEndian.Int64(%v)=%v", in64, out64)
+	}
+
+	inf64 := float64(12345678.0123456)
+	b = []byte{}
+	b = BigEndian.AppendFloat64(b, inf64)
+	outf64 := BigEndian.Float64(b)
+	if in != out {
+		t.Errorf("BigEndian.Float64(%v)=%v", inf64, outf64)
+	}
+}

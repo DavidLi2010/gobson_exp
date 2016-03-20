@@ -29,10 +29,10 @@ const (
 	BsonTypeDate
 	BsonTypeNull
 	BsonTypeRegEx
-	BsonTypeDBPointer // deprecated
-	BsonTypeCode
-	BsonTypeSymbol // deprecated
-	BsonTypeCodeWScope
+	BsonTypeDBPointer  // deprecated
+	BsonTypeCode       // not support
+	BsonTypeSymbol     // deprecated
+	BsonTypeCodeWScope // not support
 	BsonTypeInt32
 	BsonTypeTimestamp
 	BsonTypeInt64
