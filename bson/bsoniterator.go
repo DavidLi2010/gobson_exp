@@ -99,7 +99,7 @@ func (it *BsonIterator) Next() bool {
 
 	// calc value length
 	switch t {
-	case BsonTypeDouble:
+	case BsonTypeFloat64:
 		fieldOffset += 8
 	case BsonTypeString:
 		fieldOffset += int(it.order.Int32(it.value)) + 4
@@ -147,7 +147,7 @@ func (it *BsonIterator) Name() string {
 	return string(it.raw[it.offset+1 : it.offset+it.keyLen])
 }
 
-func (it *BsonIterator) Double() float64 {
+func (it *BsonIterator) Float64() float64 {
 	return it.order.Float64(it.value)
 }
 

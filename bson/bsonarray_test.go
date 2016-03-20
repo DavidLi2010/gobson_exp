@@ -26,14 +26,14 @@ func TestBsonArray(t *testing.T) {
 		value    interface{}
 		want     []byte
 	}{
-		{bson.BsonTypeDouble, 5.05, []byte("\x10\x00\x00\x00\x010\x00333333\x14@\x00")},
+		{bson.BsonTypeFloat64, 5.05, []byte("\x10\x00\x00\x00\x010\x00333333\x14@\x00")},
 	}
 
 	for _, test := range tests {
 		doc := bson.NewBsonArry()
 		switch test.bsonType {
-		case bson.BsonTypeDouble:
-			doc.AppendDouble(test.value.(float64))
+		case bson.BsonTypeFloat64:
+			doc.AppendFloat64(test.value.(float64))
 		case bson.BsonTypeString:
 			doc.AppendString(test.value.(string))
 		case bson.BsonTypeBinary:

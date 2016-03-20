@@ -18,7 +18,7 @@ type BsonType byte
 
 const (
 	BsonTypeEOD BsonType = iota // end of doc
-	BsonTypeDouble
+	BsonTypeFloat64
 	BsonTypeString
 	BsonTypeDoc
 	BsonTypeArray

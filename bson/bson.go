@@ -78,9 +78,9 @@ func (bson *Bson) Raw() []byte {
 	return bson.raw[bson.offset:]
 }
 
-func (bson *Bson) AppendDouble(name string, value float64) {
+func (bson *Bson) AppendFloat64(name string, value float64) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeDouble))
+	bson.raw = append(bson.raw, byte(BsonTypeFloat64))
 	bson.appendCString(name)
 	bson.raw = bson.order.AppendFloat64(bson.raw, value)
 }

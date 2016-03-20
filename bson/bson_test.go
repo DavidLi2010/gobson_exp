@@ -27,7 +27,7 @@ func TestSingleBsonAppend(t *testing.T) {
 		value    interface{}
 		want     []byte
 	}{
-		{bson.BsonTypeDouble, "_", 5.05, []byte("\x10\x00\x00\x00\x01_\x00333333\x14@\x00")},
+		{bson.BsonTypeFloat64, "_", 5.05, []byte("\x10\x00\x00\x00\x01_\x00333333\x14@\x00")},
 		{bson.BsonTypeString, "_", "hello!", []byte("\x13\x00\x00\x00\x02_\x00\x07\x00\x00\x00hello!\x00\x00")},
 		{bson.BsonTypeBinary, "_", bson.Binary{Data: []byte("abc")}, []byte("\x10\x00\x00\x00\x05_\x00\x03\x00\x00\x00\x00abc\x00")},
 		{bson.BsonTypeObjectId, "_", bson.ObjectId("123456789012"), []byte("\x14\x00\x00\x00\x07_\x00123456789012\x00")},
@@ -45,8 +45,8 @@ func TestSingleBsonAppend(t *testing.T) {
 	for _, test := range tests {
 		doc := bson.NewBson()
 		switch test.bsonType {
-		case bson.BsonTypeDouble:
-			doc.AppendDouble(test.name, test.value.(float64))
+		case bson.BsonTypeFloat64:
+			doc.AppendFloat64(test.name, test.value.(float64))
 		case bson.BsonTypeString:
 			doc.AppendString(test.name, test.value.(string))
 		case bson.BsonTypeBinary:

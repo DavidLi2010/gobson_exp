@@ -39,8 +39,8 @@ func (array *BsonArray) Raw() []byte {
 	return array.bson.Raw()
 }
 
-func (array *BsonArray) AppendDouble(value float64) {
-	array.bson.AppendDouble(strconv.Itoa(array.index), value)
+func (array *BsonArray) AppendFloat64(value float64) {
+	array.bson.AppendFloat64(strconv.Itoa(array.index), value)
 	array.index++
 }
 

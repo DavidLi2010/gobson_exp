@@ -34,7 +34,7 @@ func TestBsonIterator(t *testing.T) {
 		name     string
 		value    interface{}
 	}{
-		{bson.BsonTypeDouble, "double", float64(123.45)},
+		{bson.BsonTypeFloat64, "double", float64(123.45)},
 		{bson.BsonTypeString, "string", "hello, bson"},
 		{bson.BsonTypeDoc, "doc", obj},
 		{bson.BsonTypeArray, "array", array},
@@ -55,8 +55,8 @@ func TestBsonIterator(t *testing.T) {
 	for i := 0; i < len(tests); i++ {
 		test := tests[i]
 		switch test.bsonType {
-		case bson.BsonTypeDouble:
-			doc.AppendDouble(test.name, test.value.(float64))
+		case bson.BsonTypeFloat64:
+			doc.AppendFloat64(test.name, test.value.(float64))
 		case bson.BsonTypeString:
 			doc.AppendString(test.name, test.value.(string))
 		case bson.BsonTypeDoc:
@@ -109,8 +109,8 @@ func TestBsonIterator(t *testing.T) {
 		}
 
 		switch tp {
-		case bson.BsonTypeDouble:
-			val := it.Double()
+		case bson.BsonTypeFloat64:
+			val := it.Float64()
 			if val != ts.value.(float64) {
 				t.Errorf("double value, expected %v, actual %v", ts.value, val)
 			}
