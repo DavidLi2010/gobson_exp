@@ -36,7 +36,7 @@ func TestBsonIterator(t *testing.T) {
 	}{
 		{bson.BsonTypeFloat64, "double", float64(123.45)},
 		{bson.BsonTypeString, "string", "hello, bson"},
-		{bson.BsonTypeDoc, "doc", obj},
+		{bson.BsonTypeBson, "bson", obj},
 		{bson.BsonTypeArray, "array", array},
 		{bson.BsonTypeBinary, "binary", bson.Binary{Subtype: bson.BinaryTypeGeneral, Data: []byte("hello")}},
 		{bson.BsonTypeObjectId, "objectid", bson.ObjectId("012345678912")},
@@ -59,7 +59,7 @@ func TestBsonIterator(t *testing.T) {
 			doc.AppendFloat64(test.name, test.value.(float64))
 		case bson.BsonTypeString:
 			doc.AppendString(test.name, test.value.(string))
-		case bson.BsonTypeDoc:
+		case bson.BsonTypeBson:
 			doc.AppendBson(test.name, test.value.(*bson.Bson))
 		case bson.BsonTypeArray:
 			doc.AppendArray(test.name, test.value.(*bson.BsonArray))
@@ -119,8 +119,8 @@ func TestBsonIterator(t *testing.T) {
 			if val != ts.value.(string) {
 				t.Errorf("string value, expected %v, actual %v", ts.value, val)
 			}
-		case bson.BsonTypeDoc:
-			val := it.Doc()
+		case bson.BsonTypeBson:
+			val := it.Bson()
 			obj := ts.value.(*bson.Bson)
 			valIt := val.Iterator()
 			objIt := obj.Iterator()

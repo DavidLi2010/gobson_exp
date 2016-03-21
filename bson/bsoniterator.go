@@ -103,7 +103,7 @@ func (it *BsonIterator) Next() bool {
 		fieldOffset += 8
 	case BsonTypeString:
 		fieldOffset += int(it.order.Int32(it.value)) + 4
-	case BsonTypeDoc:
+	case BsonTypeBson:
 		fallthrough
 	case BsonTypeArray:
 		fieldOffset += int(it.order.Int32(it.value))
@@ -156,7 +156,7 @@ func (it *BsonIterator) UTF8String() string {
 	return string(it.value[4 : len+3])
 }
 
-func (it *BsonIterator) Doc() *Bson {
+func (it *BsonIterator) Bson() *Bson {
 	len := it.order.Int32(it.value)
 	return &Bson{raw: it.value[:len], order: it.order, finished: true}
 }

@@ -20,7 +20,7 @@ const (
 	BsonTypeEOD BsonType = iota // end of doc
 	BsonTypeFloat64
 	BsonTypeString
-	BsonTypeDoc
+	BsonTypeBson
 	BsonTypeArray
 	BsonTypeBinary
 	BsonTypeUndefined // deprecated

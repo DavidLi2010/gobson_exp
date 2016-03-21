@@ -28,7 +28,7 @@ func TestBsonType(t *testing.T) {
 		{bson.BsonTypeEOD, 0x00},
 		{bson.BsonTypeFloat64, 0x01},
 		{bson.BsonTypeString, 0x02},
-		{bson.BsonTypeDoc, 0x03},
+		{bson.BsonTypeBson, 0x03},
 		{bson.BsonTypeArray, 0x04},
 		{bson.BsonTypeBinary, 0x05},
 		{bson.BsonTypeUndefined, 0x06},

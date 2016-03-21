@@ -98,14 +98,14 @@ func (bson *Bson) AppendBson(name string, value *Bson) {
 	if bson.order != value.order {
 		panic("the byte order is different")
 	}
-	bson.raw = append(bson.raw, byte(BsonTypeDoc))
+	bson.raw = append(bson.raw, byte(BsonTypeBson))
 	bson.appendCString(name)
 	bson.raw = append(bson.raw, value.Raw()...)
 }
 
 func (bson *Bson) AppendBsonStart(name string) (child *Bson) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeDoc))
+	bson.raw = append(bson.raw, byte(BsonTypeBson))
 	bson.appendCString(name)
 	child = &Bson{raw: bson.raw, order: bson.order, offset: len(bson.raw)}
 	bson.inChild = true
