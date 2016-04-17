@@ -39,7 +39,7 @@ func TestBsonIterator(t *testing.T) {
 		{bson.BsonTypeBson, "bson", obj},
 		{bson.BsonTypeArray, "array", array},
 		{bson.BsonTypeBinary, "binary", bson.Binary{Subtype: bson.BinaryTypeGeneral, Data: []byte("hello")}},
-		{bson.BsonTypeObjectId, "objectid", bson.ObjectId("012345678912")},
+		{bson.BsonTypeObjectId, "objectid", bson.NewObjectId()},
 		{bson.BsonTypeBool, "bool", true},
 		{bson.BsonTypeDate, "date", bson.Date(12345678)},
 		{bson.BsonTypeNull, "null", nil},

@@ -171,7 +171,7 @@ func (bson *Bson) AppendBinary(name string, value Binary) {
 
 func (bson *Bson) AppendObjectId(name string, value ObjectId) {
 	bson.checkBeforeAppend()
-	if !value.Valid() {
+	if !value.IsValid() {
 		panic(fmt.Sprintf("invalid ObjectId: %s", value))
 	}
 	bson.raw = append(bson.raw, byte(BsonTypeObjectId))
