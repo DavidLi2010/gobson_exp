@@ -74,7 +74,7 @@ func TestBsonIterator(t *testing.T) {
 		case bson.BsonTypeNull:
 			doc.AppendNull(test.name)
 		case bson.BsonTypeRegEx:
-			doc.AppendRegex(test.name, test.value.(bson.RegEx).Pattern, test.value.(bson.RegEx).Options)
+			doc.AppendRegex(test.name, test.value.(bson.RegEx))
 		case bson.BsonTypeInt32:
 			doc.AppendInt32(test.name, test.value.(int32))
 		case bson.BsonTypeInt64:

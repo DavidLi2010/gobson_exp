@@ -14,7 +14,10 @@
 
 package bson
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 type Bson struct {
 	raw      []byte
@@ -108,6 +111,7 @@ func (bson *Bson) AppendBsonStart(name string) (child *Bson) {
 	bson.raw = append(bson.raw, byte(BsonTypeBson))
 	bson.appendCString(name)
 	child = &Bson{raw: bson.raw, order: bson.order, offset: len(bson.raw)}
+	child.reserveInt32()
 	bson.inChild = true
 	return child
 }
@@ -140,6 +144,7 @@ func (bson *Bson) AppendArrayStart(name string) (child *BsonArray) {
 	bson.raw = append(bson.raw, byte(BsonTypeArray))
 	bson.appendCString(name)
 	child = &BsonArray{bson: Bson{raw: bson.raw, order: bson.order, offset: len(bson.raw)}}
+	child.bson.reserveInt32()
 	bson.inChild = true
 	return child
 }
@@ -203,12 +208,12 @@ func (bson *Bson) AppendNull(name string) {
 	bson.appendCString(name)
 }
 
-func (bson *Bson) AppendRegex(name string, pattern string, options string) {
+func (bson *Bson) AppendRegex(name string, value RegEx) {
 	bson.checkBeforeAppend()
 	bson.raw = append(bson.raw, byte(BsonTypeRegEx))
 	bson.appendCString(name)
-	bson.appendCString(pattern)
-	bson.appendCString(options)
+	bson.appendCString(value.Pattern)
+	bson.appendCString(value.Options)
 }
 
 func (bson *Bson) AppendInt32(name string, value int32) {
@@ -247,4 +252,76 @@ func (bson *Bson) AppendMaxKey(name string) {
 
 func (bson *Bson) Iterator() *BsonIterator {
 	return NewBsonIterator(bson)
+}
+
+func (bson *Bson) String() string {
+	var err error
+	buf := bytes.NewBufferString("{")
+	it := bson.Iterator()
+	for it.Next() {
+		switch it.BsonType() {
+		case BsonTypeFloat64:
+			_, err = fmt.Fprintf(buf, `"%s":%v`, it.Name(), it.Float64())
+		case BsonTypeString:
+			_, err = fmt.Fprintf(buf, `"%s":"%s"`, it.Name(), it.UTF8String())
+		case BsonTypeBson:
+			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.Bson().String())
+		case BsonTypeArray:
+			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.Array().String())
+		case BsonTypeBinary:
+			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.Binary().String())
+		case BsonTypeObjectId:
+			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.ObjectId().String())
+		case BsonTypeBool:
+			_, err = fmt.Fprintf(buf, `"%s":%v`, it.Name(), it.Bool())
+		case BsonTypeDate:
+			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.Date().String())
+		case BsonTypeNull:
+			_, err = fmt.Fprintf(buf, `"%s":null`, it.Name())
+		case BsonTypeRegEx:
+			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.RegEx().String())
+		case BsonTypeInt32:
+			_, err = fmt.Fprintf(buf, `"%s":%v`, it.Name(), it.Int32())
+		case BsonTypeTimestamp:
+			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.Timestamp().String())
+		case BsonTypeInt64:
+			_, err = fmt.Fprintf(buf, `"%s":%v`, it.Name(), it.Int64())
+		case BsonTypeMaxKey:
+			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), MaxKey.String())
+		case BsonTypeMinKey:
+			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), MinKey.String())
+		case BsonTypeEOD:
+			// END
+		case BsonTypeUndefined: // deprecated
+			fallthrough
+		case BsonTypeDBPointer: // deprecated
+			fallthrough
+		case BsonTypeCode: // not support
+			fallthrough
+		case BsonTypeSymbol: // deprecated
+			fallthrough
+		case BsonTypeCodeWScope: // not support
+			fallthrough
+		default:
+			panic(fmt.Errorf("invalid bson type: %v", it.BsonType()))
+		}
+
+		if err != nil {
+			panic(fmt.Sprintf("failed to convert bson to string: %v", err))
+		}
+
+		if it.More() {
+			_, err = buf.WriteString(", ")
+			if err != nil {
+				panic(fmt.Sprintf("failed to convert bson to string: %v", err))
+			}
+		}
+	}
+
+	_, err = buf.WriteString("}")
+	if err != nil {
+		panic(fmt.Sprintf("failed to convert bson to string: %v", err))
+	}
+
+	return buf.String()
 }

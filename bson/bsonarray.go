@@ -14,7 +14,11 @@
 
 package bson
 
-import "strconv"
+import (
+	"bytes"
+	"fmt"
+	"strconv"
+)
 
 type BsonArray struct {
 	bson  Bson
@@ -84,8 +88,8 @@ func (array *BsonArray) AppendNull() {
 	array.index++
 }
 
-func (array *BsonArray) AppendRegex(pattern string, options string) {
-	array.bson.AppendRegex(strconv.Itoa(array.index), pattern, options)
+func (array *BsonArray) AppendRegex(value RegEx) {
+	array.bson.AppendRegex(strconv.Itoa(array.index), value)
 	array.index++
 }
 
@@ -116,4 +120,76 @@ func (array *BsonArray) AppendMaxKey() {
 
 func (array *BsonArray) Iterator() *BsonIterator {
 	return NewBsonIterator(&(array.bson))
+}
+
+func (array *BsonArray) String() string {
+	var err error
+	buf := bytes.NewBufferString("[")
+	it := array.Iterator()
+	for it.Next() {
+		switch it.BsonType() {
+		case BsonTypeFloat64:
+			_, err = fmt.Fprintf(buf, "%f", it.Float64())
+		case BsonTypeString:
+			_, err = buf.WriteString(it.UTF8String())
+		case BsonTypeBson:
+			_, err = buf.WriteString(it.Bson().String())
+		case BsonTypeArray:
+			_, err = buf.WriteString(it.Array().String())
+		case BsonTypeBinary:
+			_, err = buf.WriteString(it.Binary().String())
+		case BsonTypeObjectId:
+			_, err = buf.WriteString(it.ObjectId().String())
+		case BsonTypeBool:
+			_, err = fmt.Fprintf(buf, "%v", it.Bool())
+		case BsonTypeDate:
+			_, err = buf.WriteString(it.Date().String())
+		case BsonTypeNull:
+			_, err = buf.WriteString("null")
+		case BsonTypeRegEx:
+			_, err = buf.WriteString(it.RegEx().String())
+		case BsonTypeInt32:
+			_, err = fmt.Fprintf(buf, "%d", it.Int32())
+		case BsonTypeTimestamp:
+			_, err = buf.WriteString(it.Timestamp().String())
+		case BsonTypeInt64:
+			_, err = fmt.Fprintf(buf, "%d", it.Int64())
+		case BsonTypeMaxKey:
+			_, err = buf.WriteString(MaxKey.String())
+		case BsonTypeMinKey:
+			_, err = buf.WriteString(MinKey.String())
+		case BsonTypeEOD:
+			// END
+		case BsonTypeUndefined: // deprecated
+			fallthrough
+		case BsonTypeDBPointer: // deprecated
+			fallthrough
+		case BsonTypeCode: // not support
+			fallthrough
+		case BsonTypeSymbol: // deprecated
+			fallthrough
+		case BsonTypeCodeWScope: // not support
+			fallthrough
+		default:
+			panic(fmt.Errorf("invalid bson type: %v", it.BsonType()))
+		}
+
+		if err != nil {
+			panic(fmt.Sprintf("failed to convert bson array to string: %v", err))
+		}
+
+		if it.More() {
+			_, err = buf.WriteString(", ")
+			if err != nil {
+				panic(fmt.Sprintf("failed to convert bson array to string: %v", err))
+			}
+		}
+	}
+
+	_, err = buf.WriteString("]")
+	if err != nil {
+		panic(fmt.Sprintf("failed to convert bson array to string: %v", err))
+	}
+
+	return buf.String()
 }

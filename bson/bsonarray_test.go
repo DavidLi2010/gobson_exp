@@ -47,7 +47,7 @@ func TestBsonArray(t *testing.T) {
 		case bson.BsonTypeNull:
 			doc.AppendNull()
 		case bson.BsonTypeRegEx:
-			doc.AppendRegex(test.value.(bson.RegEx).Pattern, test.value.(bson.RegEx).Options)
+			doc.AppendRegex(test.value.(bson.RegEx))
 		case bson.BsonTypeInt32:
 			doc.AppendInt32(test.value.(int32))
 		case bson.BsonTypeInt64:
