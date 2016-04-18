@@ -23,6 +23,7 @@ type Bson struct {
 	raw      []byte
 	order    ByteOrder
 	offset   int // start position in raw
+	child    *Bson
 	inChild  bool
 	finished bool
 }
@@ -113,6 +114,7 @@ func (bson *Bson) AppendBsonStart(name string) (child *Bson) {
 	child = &Bson{raw: bson.raw, order: bson.order, offset: len(bson.raw)}
 	child.reserveInt32()
 	bson.inChild = true
+	bson.child = child
 	return child
 }
 
@@ -123,9 +125,11 @@ func (bson *Bson) AppendBsonEnd() {
 	if bson.finished {
 		panic("the bson is finished")
 	}
-	if bson.raw[len(bson.raw)-1] != eod {
+	if bson.child.raw[len(bson.child.raw)-1] != eod {
 		panic("the child bson is not finished")
 	}
+	bson.raw = bson.child.raw
+	bson.child = nil
 	bson.inChild = false
 }
 
@@ -146,6 +150,7 @@ func (bson *Bson) AppendArrayStart(name string) (child *BsonArray) {
 	child = &BsonArray{bson: Bson{raw: bson.raw, order: bson.order, offset: len(bson.raw)}}
 	child.bson.reserveInt32()
 	bson.inChild = true
+	bson.child = &child.bson
 	return child
 }
 
@@ -156,9 +161,11 @@ func (bson *Bson) AppendArrayEnd() {
 	if bson.finished {
 		panic("the bson is finished")
 	}
-	if bson.raw[len(bson.raw)-1] != eod {
+	if bson.child.raw[len(bson.child.raw)-1] != eod {
 		panic("the child array is not finished")
 	}
+	bson.raw = bson.child.raw
+	bson.child = nil
 	bson.inChild = false
 }
 
@@ -267,7 +274,7 @@ func (bson *Bson) String() string {
 		case BsonTypeBson:
 			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.Bson().String())
 		case BsonTypeArray:
-			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.Array().String())
+			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.BsonArray().String())
 		case BsonTypeBinary:
 			_, err = fmt.Fprintf(buf, `"%s":%s`, it.Name(), it.Binary().String())
 		case BsonTypeObjectId:
@@ -324,4 +331,26 @@ func (bson *Bson) String() string {
 	}
 
 	return buf.String()
+}
+
+func (bson *Bson) Map() Map {
+	if !bson.finished {
+		panic("the bson is unfinished")
+	}
+
+	m := make(Map)
+
+	it := bson.Iterator()
+	for it.Next() {
+		switch it.BsonType() {
+		case BsonTypeBson:
+			m[it.Name()] = it.Bson().Map()
+		case BsonTypeArray:
+			m[it.Name()] = it.BsonArray().Slice()
+		default:
+			m[it.Name()] = it.Value()
+		}
+	}
+
+	return m
 }

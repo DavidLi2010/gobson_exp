@@ -147,6 +147,43 @@ func (it *BsonIterator) Name() string {
 	return string(it.raw[it.offset+1 : it.offset+it.keyLen])
 }
 
+func (it *BsonIterator) Value() interface{} {
+	switch it.BsonType() {
+	case BsonTypeFloat64:
+		return it.Float64()
+	case BsonTypeString:
+		return it.UTF8String()
+	case BsonTypeBson:
+		return it.Bson()
+	case BsonTypeArray:
+		return it.BsonArray()
+	case BsonTypeBinary:
+		return it.Binary()
+	case BsonTypeObjectId:
+		return it.ObjectId()
+	case BsonTypeBool:
+		return it.Bool()
+	case BsonTypeDate:
+		return it.Date()
+	case BsonTypeNull:
+		return nil
+	case BsonTypeRegEx:
+		return it.RegEx()
+	case BsonTypeInt32:
+		return it.Int32()
+	case BsonTypeTimestamp:
+		return it.Timestamp()
+	case BsonTypeInt64:
+		return it.Int64()
+	case BsonTypeMaxKey:
+		return MaxKey
+	case BsonTypeMinKey:
+		return MinKey
+	default:
+		panic(fmt.Errorf("invalid bson type: %v", it.BsonType()))
+	}
+}
+
 func (it *BsonIterator) Float64() float64 {
 	return it.order.Float64(it.value)
 }
@@ -161,7 +198,7 @@ func (it *BsonIterator) Bson() *Bson {
 	return &Bson{raw: it.value[:len], order: it.order, finished: true}
 }
 
-func (it *BsonIterator) Array() *BsonArray {
+func (it *BsonIterator) BsonArray() *BsonArray {
 	len := it.order.Int32(it.value)
 	return &BsonArray{bson: Bson{raw: it.value[:len], order: it.order, finished: true}}
 }

@@ -129,13 +129,13 @@ func (array *BsonArray) String() string {
 	for it.Next() {
 		switch it.BsonType() {
 		case BsonTypeFloat64:
-			_, err = fmt.Fprintf(buf, "%f", it.Float64())
+			_, err = fmt.Fprintf(buf, "%v", it.Float64())
 		case BsonTypeString:
-			_, err = buf.WriteString(it.UTF8String())
+			_, err = fmt.Fprintf(buf, `"%s"`, it.UTF8String())
 		case BsonTypeBson:
 			_, err = buf.WriteString(it.Bson().String())
 		case BsonTypeArray:
-			_, err = buf.WriteString(it.Array().String())
+			_, err = buf.WriteString(it.BsonArray().String())
 		case BsonTypeBinary:
 			_, err = buf.WriteString(it.Binary().String())
 		case BsonTypeObjectId:
@@ -192,4 +192,26 @@ func (array *BsonArray) String() string {
 	}
 
 	return buf.String()
+}
+
+func (array *BsonArray) Slice() []interface{} {
+	if !array.bson.finished {
+		panic("the bson array is unfinished")
+	}
+
+	s := []interface{}{}
+
+	it := array.Iterator()
+	for it.Next() {
+		switch it.BsonType() {
+		case BsonTypeBson:
+			s = append(s, it.Bson().Map())
+		case BsonTypeArray:
+			s = append(s, it.BsonArray().Slice())
+		default:
+			s = append(s, it.Value())
+		}
+	}
+
+	return s
 }

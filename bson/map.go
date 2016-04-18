@@ -106,8 +106,17 @@ func (m Map) toBson(b *Bson) {
 				panic("invalid orderkey")
 			}
 		case Map:
-			b.AppendBson(name, v.(Map).Bson())
+			m := v.(Map)
+			child := b.AppendBsonStart(name)
+			m.toBson(child)
+			child.Finish()
+			b.AppendBsonEnd()
 		default:
+			switch reflect.ValueOf(v).Kind() {
+			case reflect.Array:
+			case reflect.Slice:
+			case reflect.Struct:
+			}
 			// complex64, complex128
 			panic(fmt.Errorf("can't append %s to bson", reflect.TypeOf(v).String()))
 		}

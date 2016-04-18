@@ -138,7 +138,7 @@ func TestBsonIterator(t *testing.T) {
 				t.Errorf("invalid it.More()")
 			}
 		case bson.BsonTypeArray:
-			val := it.Array()
+			val := it.BsonArray()
 			obj := ts.value.(*bson.BsonArray)
 			valIt := val.Iterator()
 			objIt := obj.Iterator()
