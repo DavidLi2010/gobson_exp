@@ -306,8 +306,18 @@ func (bson *Bson) Append(name string, value interface{}) {
 		} else {
 			bson.AppendInt64(name, int64(val))
 		}
-	case uint, uintptr:
+	case uint:
 		val := int64(value.(uint))
+		if val < 0 {
+			panic("bson has no uint64 type, and value is too large to fit correctly in an int64")
+		}
+		if val >= math.MinInt32 && val <= math.MaxInt32 {
+			bson.AppendInt32(name, int32(val))
+		} else {
+			bson.AppendInt64(name, int64(val))
+		}
+	case uintptr:
+		val := int64(value.(uintptr))
 		if val < 0 {
 			panic("bson has no uint64 type, and value is too large to fit correctly in an int64")
 		}
@@ -348,7 +358,7 @@ func (bson *Bson) Append(name string, value interface{}) {
 		child.Finish()
 		bson.AppendBsonEnd()
 	case Doc:
-		d:=value.(Doc)
+		d := value.(Doc)
 		child := bson.AppendBsonStart(name)
 		d.toBson(child)
 		child.Finish()

@@ -21,12 +21,13 @@ import (
 )
 
 func TestDoc(t *testing.T) {
-	expected := `{"outer":"hello", "obj":{"inner":"world"}, "array":["hello world", 123.456]}`
+	expected := `{"outer":"hello", "obj":{"inner":"world"}, "array":["hello world", 123.456], "uintptr":5000000000}`
 
 	doc := bson.Doc{
 		{"outer", "hello"},
 		{"obj", bson.Doc{{"inner", "world"}}},
 		{"array", []interface{}{"hello world", 123.456}},
+		{"uintptr", uintptr(5000000000)},
 	}
 
 	if expected != doc.String() {
