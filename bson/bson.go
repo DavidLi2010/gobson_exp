@@ -17,6 +17,8 @@ package bson
 import (
 	"bytes"
 	"fmt"
+	"math"
+	"reflect"
 )
 
 type Bson struct {
@@ -255,6 +257,121 @@ func (bson *Bson) AppendMaxKey(name string) {
 	bson.checkBeforeAppend()
 	bson.raw = append(bson.raw, byte(BsonTypeMaxKey))
 	bson.appendCString(name)
+}
+
+func (bson *Bson) append(name string, value interface{}) {
+	switch value.(type) {
+	case float32:
+		bson.AppendFloat64(name, float64(value.(float32)))
+	case float64:
+		bson.AppendFloat64(name, value.(float64))
+	case int8:
+		bson.AppendInt32(name, int32(value.(int8)))
+	case int16:
+		bson.AppendInt32(name, int32(value.(int16)))
+	case int32:
+		bson.AppendInt32(name, value.(int32))
+	case int64:
+		val := value.(int64)
+		if val >= math.MinInt32 && val <= math.MaxInt32 {
+			bson.AppendInt32(name, int32(val))
+		} else {
+			bson.AppendInt64(name, int64(val))
+		}
+	case uint8:
+		bson.AppendInt32(name, int32(value.(uint8)))
+	case uint16:
+		bson.AppendInt32(name, int32(value.(uint16)))
+	case uint32:
+		val := value.(uint32)
+		if int32(val) < 0 {
+			bson.AppendInt64(name, int64(val))
+		} else {
+			bson.AppendInt32(name, int32(val))
+		}
+	case uint64:
+		val := int64(value.(uint64))
+		if val < 0 {
+			panic("bson has no uint64 type, and value is too large to fit correctly in an int64")
+		}
+		if val >= math.MinInt32 && val <= math.MaxInt32 {
+			bson.AppendInt32(name, int32(val))
+		} else {
+			bson.AppendInt64(name, int64(val))
+		}
+	case int:
+		val := int64(value.(int))
+		if val >= math.MinInt32 && val <= math.MaxInt32 {
+			bson.AppendInt32(name, int32(val))
+		} else {
+			bson.AppendInt64(name, int64(val))
+		}
+	case uint:
+		val := int64(value.(uint))
+		if val < 0 {
+			panic("bson has no uint64 type, and value is too large to fit correctly in an int64")
+		}
+		if val >= math.MinInt32 && val <= math.MaxInt32 {
+			bson.AppendInt32(name, int32(val))
+		} else {
+			bson.AppendInt64(name, int64(val))
+		}
+	case bool:
+		bson.AppendBool(name, value.(bool))
+	case string:
+		bson.AppendString(name, value.(string))
+	case nil:
+		bson.AppendNull(name)
+	case ObjectId:
+		bson.AppendObjectId(name, value.(ObjectId))
+	case Date:
+		bson.AppendDate(name, value.(Date))
+	case RegEx:
+		bson.AppendRegex(name, value.(RegEx))
+	case Timestamp:
+		bson.AppendTimestamp(name, value.(Timestamp))
+	case Binary:
+		bson.AppendBinary(name, value.(Binary))
+	case orderKey:
+		val := value.(orderKey)
+		if val == MaxKey {
+			bson.AppendMaxKey(name)
+		} else if val == MinKey {
+			bson.AppendMinKey(name)
+		} else {
+			panic("invalid orderkey")
+		}
+	case Map:
+		m := value.(Map)
+		child := bson.AppendBsonStart(name)
+		m.toBson(child)
+		child.Finish()
+		bson.AppendBsonEnd()
+	default:
+		v := reflect.ValueOf(value)
+		switch v.Kind() {
+		case reflect.Array, reflect.Slice:
+			l := v.Len()
+			child := bson.AppendArrayStart(name)
+			for i := 0; i < l; i++ {
+				child.append(v.Index(i).Interface())
+			}
+			child.Finish()
+			bson.AppendArrayEnd()
+			return
+		case reflect.Map:
+			child := bson.AppendBsonStart(name)
+			for _, k := range v.MapKeys() {
+				child.append(k.String(), v.MapIndex(k).Interface())
+			}
+			child.Finish()
+			bson.AppendBsonEnd()
+			return
+		case reflect.Struct:
+		}
+		// complex64, complex128
+		panic(fmt.Errorf("can't append %s(%v) to bson", reflect.TypeOf(value).String(), value))
+	}
 }
 
 func (bson *Bson) Iterator() *BsonIterator {

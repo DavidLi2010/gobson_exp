@@ -25,7 +25,7 @@ func TestBsonIterator(t *testing.T) {
 	obj.AppendString("name", "hello")
 	obj.Finish()
 
-	array := bson.NewBsonArry()
+	array := bson.NewBsonArray()
 	array.AppendString("hello")
 	array.Finish()
 

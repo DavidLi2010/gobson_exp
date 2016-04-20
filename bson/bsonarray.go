@@ -25,7 +25,7 @@ type BsonArray struct {
 	index int
 }
 
-func NewBsonArry() *BsonArray {
+func NewBsonArray() *BsonArray {
 	return NewBsonArrayWithByteOrder(GetByteOrder())
 }
 
@@ -115,6 +115,11 @@ func (array *BsonArray) AppendMinKey() {
 
 func (array *BsonArray) AppendMaxKey() {
 	array.bson.AppendMaxKey(strconv.Itoa(array.index))
+	array.index++
+}
+
+func (array *BsonArray) append(value interface{}) {
+	array.bson.append(strconv.Itoa(array.index), value)
 	array.index++
 }
 

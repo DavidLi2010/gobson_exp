@@ -15,9 +15,8 @@
 package bson_test
 
 import (
-	"testing"
-
 	"fmt"
+	"testing"
 
 	"github.com/DavidLi2010/gobson_exp/bson"
 )
@@ -27,10 +26,10 @@ func TestMap(t *testing.T) {
 		"int":     int(1),
 		"int8":    int8(2),
 		"float64": float64(123.456),
-		"bson": bson.Map{
+		"bson": map[string]interface{}{
 			"i_int": int(10),
 		},
-		//"array":[int(1), "hello"],
+		"array":    []interface{}{int(1), float64(123.456), "hello", bson.NewObjectId()},
 		"objectid": bson.NewObjectId(),
 		"bool":     true,
 		"null":     nil,
@@ -40,5 +39,6 @@ func TestMap(t *testing.T) {
 	}
 
 	b := m.Bson()
+
 	fmt.Printf("%v\n", b)
 }

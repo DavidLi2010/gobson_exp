@@ -30,7 +30,7 @@ func TestBsonArray(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		doc := bson.NewBsonArry()
+		doc := bson.NewBsonArray()
 		switch test.bsonType {
 		case bson.BsonTypeFloat64:
 			doc.AppendFloat64(test.value.(float64))
