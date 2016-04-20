@@ -259,7 +259,7 @@ func (bson *Bson) AppendMaxKey(name string) {
 	bson.appendCString(name)
 }
 
-func (bson *Bson) append(name string, value interface{}) {
+func (bson *Bson) Append(name string, value interface{}) {
 	switch value.(type) {
 	case float32:
 		bson.AppendFloat64(name, float64(value.(float32)))
@@ -306,7 +306,7 @@ func (bson *Bson) append(name string, value interface{}) {
 		} else {
 			bson.AppendInt64(name, int64(val))
 		}
-	case uint:
+	case uint, uintptr:
 		val := int64(value.(uint))
 		if val < 0 {
 			panic("bson has no uint64 type, and value is too large to fit correctly in an int64")
@@ -347,6 +347,12 @@ func (bson *Bson) append(name string, value interface{}) {
 		m.toBson(child)
 		child.Finish()
 		bson.AppendBsonEnd()
+	case Doc:
+		d:=value.(Doc)
+		child := bson.AppendBsonStart(name)
+		d.toBson(child)
+		child.Finish()
+		bson.AppendBsonEnd()
 	default:
 		v := reflect.ValueOf(value)
 		switch v.Kind() {
@@ -354,7 +360,7 @@ func (bson *Bson) append(name string, value interface{}) {
 			l := v.Len()
 			child := bson.AppendArrayStart(name)
 			for i := 0; i < l; i++ {
-				child.append(v.Index(i).Interface())
+				child.Append(v.Index(i).Interface())
 			}
 			child.Finish()
 			bson.AppendArrayEnd()
@@ -362,11 +368,12 @@ func (bson *Bson) append(name string, value interface{}) {
 		case reflect.Map:
 			child := bson.AppendBsonStart(name)
 			for _, k := range v.MapKeys() {
-				child.append(k.String(), v.MapIndex(k).Interface())
+				child.Append(k.String(), v.MapIndex(k).Interface())
 			}
 			child.Finish()
 			bson.AppendBsonEnd()
 			return
+		case reflect.Ptr:
 		case reflect.Struct:
 		}
 		// complex64, complex128

@@ -118,8 +118,8 @@ func (array *BsonArray) AppendMaxKey() {
 	array.index++
 }
 
-func (array *BsonArray) append(value interface{}) {
-	array.bson.append(strconv.Itoa(array.index), value)
+func (array *BsonArray) Append(value interface{}) {
+	array.bson.Append(strconv.Itoa(array.index), value)
 	array.index++
 }
 

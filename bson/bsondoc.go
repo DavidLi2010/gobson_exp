@@ -14,21 +14,26 @@
 
 package bson
 
-type Map map[string]interface{}
+type Doc []DocElement
 
-func (m Map) toBson(b *Bson) {
-	for name, v := range m {
-		b.append(name, v)
+type DocElement struct {
+	Name  string
+	Value interface{}
+}
+
+func (d Doc) toBson(b *Bson) {
+	for _, item := range d {
+		b.Append(item.Name, item.Value)
 	}
 }
 
-func (m Map) Bson() *Bson {
+func (d Doc) Bson() *Bson {
 	b := NewBson()
-	m.toBson(b)
+	d.toBson(b)
 	b.Finish()
 	return b
 }
 
-func (m Map) String() string {
-	return m.Bson().String()
+func (d Doc) String() string {
+	return d.Bson().String()
 }
