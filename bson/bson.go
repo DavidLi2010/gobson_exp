@@ -63,6 +63,34 @@ func NewBsonWithByteOrder(order ByteOrder) *Bson {
 	return bson
 }
 
+func NewBsonWithRaw(raw []byte, order ByteOrder) *Bson {
+	return &Bson{raw: raw, order: order, finished: true}
+}
+
+func (bson *Bson) Validate() (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("invalid bson: %v", r)
+		}
+	}()
+
+	if !bson.finished {
+		return fmt.Errorf("unfinished bson")
+	}
+
+	if bson.Length() != len(bson.Raw()) {
+		return fmt.Errorf("invalid bson length")
+	}
+
+	it := bson.Iterator()
+	for it.Next() {
+		it.Name()
+		it.Value()
+	}
+
+	return nil
+}
+
 func (bson *Bson) checkBeforeAppend() {
 	if bson.finished {
 		panic("the bson is finished")
@@ -386,13 +414,23 @@ func (bson *Bson) Append(name string, value interface{}) {
 		case reflect.Ptr:
 		case reflect.Struct:
 		}
-		// complex64, complex128
+		// Complex64, Complex128
+		// Chan, Func
+		// UnsafePointer
 		panic(fmt.Errorf("can't append %s(%v) to bson", reflect.TypeOf(value).String(), value))
 	}
 }
 
 func (bson *Bson) Iterator() *BsonIterator {
 	return NewBsonIterator(bson)
+}
+
+func (bson *Bson) Length() int {
+	if !bson.finished {
+		panic("the bson is unfinished")
+	}
+
+	return int(bson.order.Int32(bson.raw[bson.offset:]))
 }
 
 func (bson *Bson) String() string {

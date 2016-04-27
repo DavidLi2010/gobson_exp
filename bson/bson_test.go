@@ -115,3 +115,12 @@ func TestBsonAppendBson(t *testing.T) {
 		t.Errorf("append bson/array error, expected:%s, actual:%s", expected, outer.String())
 	}
 }
+
+func TestNewBsonWithRaw(t *testing.T) {
+	raw := []byte("bad bson")
+	b := bson.NewBsonWithRaw(raw, bson.GetByteOrder())
+	err := b.Validate()
+	if err == nil {
+		t.Errorf("invalid Bson.Validate()")
+	}
+}

@@ -70,8 +70,8 @@ func cstringLength(s []byte) int {
 		}
 	}
 
-	if cstringLen > len || s[cstringLen-1] != 0x00 {
-		panic("cstring ")
+	if cstringLen < 1 || s[cstringLen-1] != 0x00 {
+		panic("invalid cstring")
 	}
 
 	return cstringLen
