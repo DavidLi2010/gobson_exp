@@ -480,11 +480,35 @@ func (bson *Bson) Map() Map {
 		case BsonTypeBson:
 			m[it.Name()] = it.Bson().Map()
 		case BsonTypeArray:
-			m[it.Name()] = it.BsonArray().Slice()
+			m[it.Name()] = it.BsonArray().MapSlice()
 		default:
 			m[it.Name()] = it.Value()
 		}
 	}
 
 	return m
+}
+
+func (bson *Bson) Doc() Doc {
+	if !bson.finished {
+		panic("the bson is unfinished")
+	}
+
+	d := []DocElement{}
+
+	it := bson.Iterator()
+	for it.Next() {
+		var val interface{}
+		switch it.BsonType() {
+		case BsonTypeBson:
+			val = it.Bson().Doc()
+		case BsonTypeArray:
+			val = it.BsonArray().DocSlice()
+		default:
+			val = it.Value()
+		}
+		d = append(d, DocElement{Name: it.Name(), Value: val})
+	}
+
+	return d
 }

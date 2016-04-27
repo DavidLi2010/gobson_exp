@@ -15,7 +15,6 @@
 package bson_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/DavidLi2010/gobson_exp/bson"
@@ -38,7 +37,16 @@ func TestMap(t *testing.T) {
 		"string":   "hello",
 	}
 
-	b := m.Bson()
+	m2 := m.Bson().Map()
 
-	fmt.Printf("%v\n", b)
+	if len(m2) != len(m) {
+		t.Errorf("bson fields num: %d, map fileds num: %d", len(m2), len(m))
+	}
+
+	for k, _ := range m {
+		_, exist := m2[k]
+		if !exist {
+			t.Errorf("bson missing field [%s]", k)
+		}
+	}
 }

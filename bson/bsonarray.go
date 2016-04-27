@@ -199,7 +199,7 @@ func (array *BsonArray) String() string {
 	return buf.String()
 }
 
-func (array *BsonArray) Slice() []interface{} {
+func (array *BsonArray) MapSlice() []interface{} {
 	if !array.bson.finished {
 		panic("the bson array is unfinished")
 	}
@@ -212,7 +212,29 @@ func (array *BsonArray) Slice() []interface{} {
 		case BsonTypeBson:
 			s = append(s, it.Bson().Map())
 		case BsonTypeArray:
-			s = append(s, it.BsonArray().Slice())
+			s = append(s, it.BsonArray().MapSlice())
+		default:
+			s = append(s, it.Value())
+		}
+	}
+
+	return s
+}
+
+func (array *BsonArray) DocSlice() []interface{} {
+	if !array.bson.finished {
+		panic("the bson array is unfinished")
+	}
+
+	s := []interface{}{}
+
+	it := array.Iterator()
+	for it.Next() {
+		switch it.BsonType() {
+		case BsonTypeBson:
+			s = append(s, it.Bson().Doc())
+		case BsonTypeArray:
+			s = append(s, it.BsonArray().DocSlice())
 		default:
 			s = append(s, it.Value())
 		}

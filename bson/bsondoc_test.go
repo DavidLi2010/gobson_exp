@@ -33,4 +33,19 @@ func TestDoc(t *testing.T) {
 	if expected != doc.String() {
 		t.Errorf("append bson/array error, expected:%s, actual:%s", expected, doc.String())
 	}
+
+	doc2 := doc.Bson().Doc()
+	if len(doc) != len(doc2) {
+		t.Errorf("bson fields num: %d, doc fileds num: %d", len(doc2), len(doc))
+	}
+
+	for i, v := range doc {
+		if doc2[i].Name != v.Name {
+			t.Errorf("bson missing field [%s]", v.Name)
+		}
+	}
+
+	if expected != doc2.String() {
+		t.Errorf("doc convert bson error, expected:%s, actual:%s", expected, doc2.String())
+	}
 }
