@@ -123,4 +123,11 @@ func TestNewBsonWithRaw(t *testing.T) {
 	if err == nil {
 		t.Errorf("invalid Bson.Validate()")
 	}
+
+	raw = bson.Map{"int": int(100), "string": "hello world"}.Bson().Raw()
+	b = bson.NewBsonWithRaw(raw, bson.GetByteOrder())
+	err = b.Validate()
+	if err != nil {
+		t.Errorf("invalid Bson.Validate()")
+	}
 }

@@ -412,7 +412,18 @@ func (bson *Bson) Append(name string, value interface{}) {
 			bson.AppendBsonEnd()
 			return
 		case reflect.Ptr:
+			if v.IsNil() {
+				bson.AppendNull(name)
+			} else {
+				bson.Append(name, v.Elem().Interface())
+			}
+			return
 		case reflect.Struct:
+			child := bson.AppendBsonStart(name)
+			structToBson(v, child)
+			child.Finish()
+			bson.AppendBsonEnd()
+			return
 		}
 		// Complex64, Complex128
 		// Chan, Func
@@ -549,4 +560,12 @@ func (bson *Bson) Doc() Doc {
 	}
 
 	return d
+}
+
+func (bson *Bson) Struct(s interface{}) {
+	v := reflect.ValueOf(s)
+	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+		panic("s must be struct pointer")
+	}
+	docToStruct(v.Elem(), bson.Doc())
 }
