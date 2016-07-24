@@ -16,17 +16,17 @@ package bson
 
 type Map map[string]interface{}
 
-func (m Map) toBson(b *Bson) {
+func (m Map) toBsonBuilder(b *BsonBuilder) {
 	for name, v := range m {
 		b.Append(name, v)
 	}
 }
 
 func (m Map) Bson() *Bson {
-	b := NewBson()
-	m.toBson(b)
+	b := NewBsonBuilder()
+	m.toBsonBuilder(b)
 	b.Finish()
-	return b
+	return b.Bson()
 }
 
 func (m Map) String() string {

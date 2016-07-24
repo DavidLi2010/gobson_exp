@@ -50,3 +50,17 @@ func TestMap(t *testing.T) {
 		}
 	}
 }
+
+/*
+func TestMap2(t *testing.T) {
+	m := bson.Map{"int": int(12), "int8": int8(12), "int16": int16(12),
+		"int32": int32(12), "int64": int64(12)}
+
+	m2 := m.Bson().Map()
+
+	for k, v := range m2 {
+		fmt.Printf("k=%v, v=%v(%v)\n", k, v, reflect.TypeOf(v).Kind())
+	}
+
+	fmt.Printf("m=%v\nm2=%v\n", m, m2)
+}*/

@@ -28,7 +28,7 @@ type fieldInfo struct {
 	Index int
 }
 
-func structToBson(s reflect.Value, b *Bson) {
+func structToBsonBuilder(s reflect.Value, b *BsonBuilder) {
 	t := s.Type()
 	n := s.NumField()
 	for i := 0; i < n; i++ {
@@ -54,10 +54,10 @@ func StructToBson(s interface{}) *Bson {
 		panic("s must be struct or struct pointer")
 	}
 
-	b := NewBson()
-	structToBson(v, b)
+	b := NewBsonBuilder()
+	structToBsonBuilder(v, b)
 	b.Finish()
-	return b
+	return b.Bson()
 }
 
 func mapToStruct(s reflect.Value, m Map) {

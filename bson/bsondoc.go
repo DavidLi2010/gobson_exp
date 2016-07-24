@@ -21,17 +21,17 @@ type DocElement struct {
 	Value interface{}
 }
 
-func (d Doc) toBson(b *Bson) {
+func (d Doc) toBsonBuilder(b *BsonBuilder) {
 	for _, item := range d {
 		b.Append(item.Name, item.Value)
 	}
 }
 
 func (d Doc) Bson() *Bson {
-	b := NewBson()
-	d.toBson(b)
+	b := NewBsonBuilder()
+	d.toBsonBuilder(b)
 	b.Finish()
-	return b
+	return b.Bson()
 }
 
 func (d Doc) String() string {

@@ -59,9 +59,6 @@ func NewBsonIterator(bson *Bson) *BsonIterator {
 	if bson == nil {
 		panic("null bson")
 	}
-	if !bson.finished {
-		panic("unfinished bson")
-	}
 
 	raw := bson.Raw()
 	length := int(bytesToInt32(raw))
@@ -220,12 +217,12 @@ func (it *BsonIterator) UTF8String() string {
 
 func (it *BsonIterator) Bson() *Bson {
 	len := bytesToInt32(it.value)
-	return &Bson{raw: it.value[:len], finished: true}
+	return &Bson{raw: it.value[:len]}
 }
 
 func (it *BsonIterator) BsonArray() *BsonArray {
 	len := bytesToInt32(it.value)
-	return &BsonArray{bson: Bson{raw: it.value[:len], finished: true}}
+	return &BsonArray{bson: Bson{raw: it.value[:len]}}
 }
 
 func (it *BsonIterator) Binary() Binary {

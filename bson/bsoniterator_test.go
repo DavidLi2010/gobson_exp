@@ -21,13 +21,9 @@ import (
 )
 
 func TestBsonIterator(t *testing.T) {
-	obj := bson.NewBson()
-	obj.AppendString("name", "hello")
-	obj.Finish()
+	obj := bson.NewBsonBuilder().AppendString("name", "hello").Finish().Bson()
 
-	array := bson.NewBsonArray()
-	array.AppendString("hello")
-	array.Finish()
+	array := bson.NewBsonArrayBuilder().AppendString("hello").Finish().BsonArray()
 
 	var tests = [...]struct {
 		bsonType bson.BsonType
@@ -51,7 +47,7 @@ func TestBsonIterator(t *testing.T) {
 		{bson.BsonTypeMinKey, "minkey", nil},
 	}
 
-	doc := bson.NewBson()
+	doc := bson.NewBsonBuilder()
 	for i := 0; i < len(tests); i++ {
 		test := tests[i]
 		switch test.bsonType {
@@ -91,7 +87,7 @@ func TestBsonIterator(t *testing.T) {
 	}
 	doc.Finish()
 
-	it := doc.Iterator()
+	it := doc.Bson().Iterator()
 	id := 0
 	for it.Next() {
 		ts := tests[id]

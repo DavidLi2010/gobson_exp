@@ -43,7 +43,7 @@ func TestSingleBsonAppend(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		doc := bson.NewBson()
+		doc := bson.NewBsonBuilder()
 		switch test.bsonType {
 		case bson.BsonTypeFloat64:
 			doc.AppendFloat64(test.name, test.value.(float64))
@@ -76,7 +76,7 @@ func TestSingleBsonAppend(t *testing.T) {
 		}
 		doc.Finish()
 
-		data := doc.Raw()
+		data := doc.Bson().Raw()
 
 		if len(data) != len(test.want) {
 			t.Errorf("type: %v\nexpected: %v\n  actual: %v", test.bsonType, test.want, data)
@@ -93,7 +93,7 @@ func TestSingleBsonAppend(t *testing.T) {
 func TestBsonAppendBson(t *testing.T) {
 	expected := `{"outer":"hello", "obj":{"inner":"world"}, "array":["hello world", 123.456]}`
 
-	outer := bson.NewBson()
+	outer := bson.NewBsonBuilder()
 	outer.AppendString("outer", "hello")
 
 	// append bson
@@ -111,21 +111,23 @@ func TestBsonAppendBson(t *testing.T) {
 
 	outer.Finish()
 
-	if expected != outer.String() {
-		t.Errorf("append bson/array error, expected:%s, actual:%s", expected, outer.String())
+	b:=outer.Bson()
+
+	if expected != b.String() {
+		t.Errorf("append bson/array error, expected:%s, actual:%s", expected, b.String())
 	}
 }
 
 func TestNewBsonWithRaw(t *testing.T) {
 	raw := []byte("bad bson")
-	b := bson.NewBsonWithRaw(raw)
+	b := bson.NewBson(raw)
 	err := b.Validate()
 	if err == nil {
 		t.Errorf("invalid Bson.Validate()")
 	}
 
 	raw = bson.Map{"int": int(100), "string": "hello world"}.Bson().Raw()
-	b = bson.NewBsonWithRaw(raw)
+	b = bson.NewBson(raw)
 	err = b.Validate()
 	if err != nil {
 		t.Errorf("invalid Bson.Validate()")

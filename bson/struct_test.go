@@ -96,6 +96,24 @@ var mdata = map[string]interface{}{
 	"String":  "string",
 }
 
+var mdata2 = bson.Map{
+	"Bool":    true,
+	"Int":     int(math.MinInt32),
+	"Int8":    int8(math.MinInt8),
+	"Int16":   int16(math.MinInt16),
+	"Int32":   int32(math.MinInt32),
+	"Int64":   int64(math.MinInt64),
+	"Uint":    uint(math.MaxUint32),
+	"Uint8":   uint8(math.MaxUint8),
+	"Uint16":  uint16(math.MaxUint16),
+	"Uint32":  uint32(math.MaxUint32),
+	"Uint64":  uint64(math.MaxInt64),
+	"Uintptr": uintptr(math.MaxInt32),
+	"Float32": float32(math.MaxFloat32),
+	"Float64": float64(math.MaxFloat64),
+	"String":  "string",
+}
+
 var ddata = bson.Doc{
 	{"Bool", true},
 	{"Int", int(math.MinInt32)},
@@ -1028,5 +1046,109 @@ func TestArraySliceDocStruct(t *testing.T) {
 		if !docValueEqual(a1, a2) {
 			t.Errorf("invalid slice doc mapping")
 		}
+	}
+}
+
+func BenchmarkSdbBsonMap(t *testing.B) {
+	for i := 0; i < t.N; i++ {
+		/*m := bson.Map{
+			"int":     int(1),
+			"int8":    int8(2),
+			"float64": float64(123.456),
+			"bson": map[string]interface{}{
+				"i_int": int(10),
+			},
+			"array":    []interface{}{int(1), float64(123.456), "hello", bson.NewObjectId()},
+			"objectid": bson.NewObjectId(),
+			"bool":     true,
+			"null":     nil,
+			"maxkey":   bson.MaxKey,
+			"minkey":   bson.MinKey,
+			"string":   "hello",
+		}*/
+		m := mdata2
+		b := m.Bson()
+		_ = b
+
+		//m2 := b.Map()
+		//_ = m2
+	}
+}
+
+func BenchmarkSdbBsonDoc(t *testing.B) {
+	for i := 0; i < t.N; i++ {
+		doc := ddata
+		b := doc.Bson()
+		_ = b
+
+		//doc2 := doc.Bson().Doc()
+		//if len(doc) != len(doc2) {
+		//	t.Errorf("bson fields num: %d, doc fileds num: %d", len(doc2), len(doc))
+		//}
+	}
+}
+
+func BenchmarkSdbBsonStruct(t *testing.B) {
+	for i := 0; i < t.N; i++ {
+		s := pridata
+		b := bson.StructToBson(s)
+
+		//var s2 primary
+		//b.Struct(&s2)
+		_ = b
+	}
+}
+
+func BenchmarkSdbBsonAppendXXX(t *testing.B) {
+	for i := 0; i < t.N; i++ {
+		b := bson.NewBsonBuilder()
+		b.AppendBool("bool", pridata.Bool)
+		b.AppendInt64("int", int64(pridata.Int))
+		b.AppendInt32("int8", int32(pridata.Int8))
+		b.AppendInt32("int16", int32(pridata.Int16))
+		b.AppendInt32("int32", int32(pridata.Int32))
+		b.AppendInt64("int64", int64(pridata.Int64))
+		b.AppendInt64("uint", int64(pridata.Uint))
+		b.AppendInt32("uint8", int32(pridata.Uint8))
+		b.AppendInt32("uint16", int32(pridata.Uint16))
+		b.AppendInt32("uint32", int32(pridata.Uint32))
+		b.AppendInt64("uint64", int64(pridata.Uint64))
+		b.AppendInt64("uintprt", int64(pridata.Uintptr))
+		b.AppendFloat64("float32", float64(pridata.Float32))
+		b.AppendFloat64("float64", pridata.Float64)
+		b.AppendString("string", pridata.String)
+		b.Finish()
+
+		//var s2 primary
+		//b.Doc()
+	}
+}
+
+func BenchmarkSdbBsonAppend(t *testing.B) {
+	for i := 0; i < t.N; i++ {
+		b := bson.NewBsonBuilder()
+		/*b.Append("bool", pridata.Bool)
+		b.Append("int", (pridata.Int))
+		b.Append("int8", (pridata.Int8))
+		b.Append("int16", (pridata.Int16))
+		b.Append("int32", (pridata.Int32))
+		b.Append("int64", (pridata.Int64))
+		b.Append("uint", (pridata.Uint))
+		b.Append("uint8", (pridata.Uint8))
+		b.Append("uint16", (pridata.Uint16))
+		b.Append("uint32", (pridata.Uint32))
+		b.Append("uint64", (pridata.Uint64))
+		b.Append("uintprt", (pridata.Uintptr))
+		b.Append("float32", (pridata.Float32))
+		b.Append("float64", pridata.Float64)
+		b.Append("string", pridata.String)*/
+		for _, item := range ddata {
+			b.Append(item.Name, item.Value)
+		}
+		b.Finish()
+
+		//var s2 primary
+		//b.Struct(&s2)
+		//b.Doc()
 	}
 }

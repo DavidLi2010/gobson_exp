@@ -30,7 +30,7 @@ func TestBsonArray(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		doc := bson.NewBsonArray()
+		doc := bson.NewBsonArrayBuilder()
 		switch test.bsonType {
 		case bson.BsonTypeFloat64:
 			doc.AppendFloat64(test.value.(float64))
@@ -63,7 +63,7 @@ func TestBsonArray(t *testing.T) {
 		}
 		doc.Finish()
 
-		data := doc.Raw()
+		data := doc.BsonArray().Raw()
 
 		if len(data) != len(test.want) {
 			t.Errorf("type: %v\nexpected: %v\n  actual: %v", test.bsonType, test.want, data)
