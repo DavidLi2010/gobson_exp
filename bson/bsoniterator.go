@@ -14,11 +14,13 @@
 
 package bson
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 type BsonIterator struct {
 	raw    []byte
-	order  ByteOrder
 	length int
 	offset int
 
@@ -26,6 +28,31 @@ type BsonIterator struct {
 	elementLen int
 	keyLen     int
 	value      []byte
+}
+
+func bytesToInt32(b []byte) int32 {
+	if len(b) < 4 {
+		panic("bytesToInt32: len([]byte) < 4")
+	}
+
+	return int32(uint32(b[0]) | (uint32(b[1]) << 8) | (uint32(b[2]) << 16) | (uint32(b[3]) << 24))
+}
+
+func bytesToInt64(b []byte) int64 {
+	if len(b) < 8 {
+		panic("bytesToInt64: len([]byte) < 8")
+	}
+
+	return int64(uint64(b[0]) | (uint64(b[1]) << 8) | (uint64(b[2]) << 16) | (uint64(b[3]) << 24) |
+		(uint64(b[4]) << 32) | (uint64(b[5]) << 40) | (uint64(b[6]) << 48) | (uint64(b[7]) << 56))
+}
+
+func bytesToFloat64(b []byte) float64 {
+	if len(b) < 8 {
+		panic("bytesToFloat64: len([]byte) < 8")
+	}
+
+	return math.Float64frombits(uint64(bytesToInt64(b)))
 }
 
 func NewBsonIterator(bson *Bson) *BsonIterator {
@@ -37,12 +64,10 @@ func NewBsonIterator(bson *Bson) *BsonIterator {
 	}
 
 	raw := bson.Raw()
-	order := bson.order
-	length := int(order.Int32(raw))
+	length := int(bytesToInt32(raw))
 
 	return &BsonIterator{
 		raw:    raw,
-		order:  order,
 		length: length,
 		offset: 4,
 	}
@@ -102,13 +127,13 @@ func (it *BsonIterator) Next() bool {
 	case BsonTypeFloat64:
 		fieldOffset += 8
 	case BsonTypeString:
-		fieldOffset += int(it.order.Int32(it.value)) + 4
+		fieldOffset += int(bytesToInt32(it.value)) + 4
 	case BsonTypeBson:
 		fallthrough
 	case BsonTypeArray:
-		fieldOffset += int(it.order.Int32(it.value))
+		fieldOffset += int(bytesToInt32(it.value))
 	case BsonTypeBinary:
-		fieldOffset += int(it.order.Int32(it.value)) + 5
+		fieldOffset += int(bytesToInt32(it.value)) + 5
 	case BsonTypeObjectId:
 		fieldOffset += 12
 	case BsonTypeBool:
@@ -185,26 +210,26 @@ func (it *BsonIterator) Value() interface{} {
 }
 
 func (it *BsonIterator) Float64() float64 {
-	return it.order.Float64(it.value)
+	return bytesToFloat64(it.value)
 }
 
 func (it *BsonIterator) UTF8String() string {
-	len := it.order.Int32(it.value)
+	len := bytesToInt32(it.value)
 	return string(it.value[4 : len+3])
 }
 
 func (it *BsonIterator) Bson() *Bson {
-	len := it.order.Int32(it.value)
-	return &Bson{raw: it.value[:len], order: it.order, finished: true}
+	len := bytesToInt32(it.value)
+	return &Bson{raw: it.value[:len], finished: true}
 }
 
 func (it *BsonIterator) BsonArray() *BsonArray {
-	len := it.order.Int32(it.value)
-	return &BsonArray{bson: Bson{raw: it.value[:len], order: it.order, finished: true}}
+	len := bytesToInt32(it.value)
+	return &BsonArray{bson: Bson{raw: it.value[:len], finished: true}}
 }
 
 func (it *BsonIterator) Binary() Binary {
-	len := it.order.Int32(it.value)
+	len := bytesToInt32(it.value)
 	return Binary{Subtype: BinaryType(it.value[4]), Data: it.value[5 : len+5]}
 }
 
@@ -231,15 +256,15 @@ func (it *BsonIterator) RegEx() RegEx {
 }
 
 func (it *BsonIterator) Int32() int32 {
-	return it.order.Int32(it.value)
+	return bytesToInt32(it.value)
 }
 
 func (it *BsonIterator) Timestamp() Timestamp {
-	inc := it.order.Int32(it.value)
-	sec := it.order.Int32(it.value[4:])
+	inc := bytesToInt32(it.value)
+	sec := bytesToInt32(it.value[4:])
 	return Timestamp{Increment: inc, Second: sec}
 }
 
 func (it *BsonIterator) Int64() int64 {
-	return it.order.Int64(it.value)
+	return bytesToInt64(it.value)
 }

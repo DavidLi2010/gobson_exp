@@ -20,17 +20,31 @@ import (
 	"strconv"
 )
 
+func init() {
+	itoaCache = make([]string, itoaCacheSize)
+	for i := 0; i < itoaCacheSize; i++ {
+		itoaCache[i] = strconv.Itoa(i)
+	}
+}
+
+const itoaCacheSize = 32
+
+var itoaCache []string
+
+func itoa(i int) string {
+	if i < itoaCacheSize {
+		return itoaCache[i]
+	}
+	return strconv.Itoa(i)
+}
+
 type BsonArray struct {
 	bson  Bson
 	index int
 }
 
 func NewBsonArray() *BsonArray {
-	return NewBsonArrayWithByteOrder(GetByteOrder())
-}
-
-func NewBsonArrayWithByteOrder(order ByteOrder) *BsonArray {
-	bsonArray := &BsonArray{bson: Bson{raw: make([]byte, 0, initialBufferSize), order: order}}
+	bsonArray := &BsonArray{bson: Bson{raw: make([]byte, 0, initialBufferSize)}}
 	bsonArray.bson.reserveInt32()
 	return bsonArray
 }
@@ -44,82 +58,82 @@ func (array *BsonArray) Raw() []byte {
 }
 
 func (array *BsonArray) AppendFloat64(value float64) {
-	array.bson.AppendFloat64(strconv.Itoa(array.index), value)
+	array.bson.AppendFloat64(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendString(value string) {
-	array.bson.AppendString(strconv.Itoa(array.index), value)
+	array.bson.AppendString(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendBson(value *Bson) {
-	array.bson.AppendBson(strconv.Itoa(array.index), value)
+	array.bson.AppendBson(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendArray(value *BsonArray) {
-	array.bson.AppendArray(strconv.Itoa(array.index), value)
+	array.bson.AppendArray(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendBinary(value Binary) {
-	array.bson.AppendBinary(strconv.Itoa(array.index), value)
+	array.bson.AppendBinary(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendObjectId(value ObjectId) {
-	array.bson.AppendObjectId(strconv.Itoa(array.index), value)
+	array.bson.AppendObjectId(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendBool(value bool) {
-	array.bson.AppendBool(strconv.Itoa(array.index), value)
+	array.bson.AppendBool(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendDate(value Date) {
-	array.bson.AppendDate(strconv.Itoa(array.index), value)
+	array.bson.AppendDate(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendNull() {
-	array.bson.AppendNull(strconv.Itoa(array.index))
+	array.bson.AppendNull(itoa(array.index))
 	array.index++
 }
 
 func (array *BsonArray) AppendRegex(value RegEx) {
-	array.bson.AppendRegex(strconv.Itoa(array.index), value)
+	array.bson.AppendRegex(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendInt32(value int32) {
-	array.bson.AppendInt32(strconv.Itoa(array.index), value)
+	array.bson.AppendInt32(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendTimestamp(value Timestamp) {
-	array.bson.AppendTimestamp(strconv.Itoa(array.index), value)
+	array.bson.AppendTimestamp(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendInt64(value int64) {
-	array.bson.AppendInt64(strconv.Itoa(array.index), value)
+	array.bson.AppendInt64(itoa(array.index), value)
 	array.index++
 }
 
 func (array *BsonArray) AppendMinKey() {
-	array.bson.AppendMinKey(strconv.Itoa(array.index))
+	array.bson.AppendMinKey(itoa(array.index))
 	array.index++
 }
 
 func (array *BsonArray) AppendMaxKey() {
-	array.bson.AppendMaxKey(strconv.Itoa(array.index))
+	array.bson.AppendMaxKey(itoa(array.index))
 	array.index++
 }
 
 func (array *BsonArray) Append(value interface{}) {
-	array.bson.Append(strconv.Itoa(array.index), value)
+	array.bson.Append(itoa(array.index), value)
 	array.index++
 }
 

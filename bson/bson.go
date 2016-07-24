@@ -23,7 +23,6 @@ import (
 
 type Bson struct {
 	raw      []byte
-	order    ByteOrder
 	offset   int // start position in raw
 	child    *Bson
 	inChild  bool
@@ -33,38 +32,57 @@ type Bson struct {
 const initialBufferSize = 64
 const eod = byte(0x00) // end of doc
 
-func (bson *Bson) byteOrder() ByteOrder {
-	return bson.order
-}
-
-func (bson *Bson) appendCString(value string) {
-	const eos byte = 0x00 // end of cstring
-	bson.raw = append(bson.raw, []byte(value)...)
-	bson.raw = append(bson.raw, eos)
-}
-
 func (bson *Bson) reserveInt32() (pos int) {
 	pos = len(bson.raw)
 	bson.raw = append(bson.raw, 0, 0, 0, 0)
 	return pos
 }
 
-func (bson *Bson) setInt32(pos int, value int32) {
-	bson.order.SetInt32(bson.raw, pos, value)
+func (bson *Bson) setInt32(pos int, v int32) {
+	bson.raw[pos+0] = byte(v)
+	bson.raw[pos+1] = byte(v >> 8)
+	bson.raw[pos+2] = byte(v >> 16)
+	bson.raw[pos+3] = byte(v >> 24)
+}
+
+func (bson *Bson) appendType(t BsonType)  {
+	bson.raw = append(bson.raw, byte(t))
+}
+
+func (bson *Bson) appendCString(v string) {
+	const eos byte = 0x00 // end of cstring
+	bson.raw = append(bson.raw, []byte(v)...)
+	bson.raw = append(bson.raw, eos)
+}
+
+func (bson *Bson) appendBytes(v ...byte)  {
+	bson.raw = append(bson.raw, v...)
+}
+
+func (bson *Bson) appendInt32(v int32) {
+	u := uint32(v)
+	bson.raw = append(bson.raw, byte(u), byte(u>>8), byte(u>>16), byte(u>>24))
+}
+
+func (bson *Bson) appendInt64(v int64) {
+	u := uint64(v)
+	bson.raw = append(bson.raw, byte(u), byte(u>>8), byte(u>>16), byte(u>>24),
+		byte(u>>32), byte(u>>40), byte(u>>48), byte(u>>56))
+}
+
+func (bson *Bson) appendFloat64(v float64) {
+	u := int64(math.Float64bits(v))
+	bson.appendInt64(u)
 }
 
 func NewBson() *Bson {
-	return NewBsonWithByteOrder(GetByteOrder())
-}
-
-func NewBsonWithByteOrder(order ByteOrder) *Bson {
-	bson := &Bson{raw: make([]byte, 0, initialBufferSize), order: order}
+	bson := &Bson{raw: make([]byte, 0, initialBufferSize)}
 	bson.reserveInt32()
 	return bson
 }
 
-func NewBsonWithRaw(raw []byte, order ByteOrder) *Bson {
-	return &Bson{raw: raw, order: order, finished: true}
+func NewBsonWithRaw(raw []byte) *Bson {
+	return &Bson{raw: raw, finished: true}
 }
 
 func (bson *Bson) Validate() (err error) {
@@ -114,34 +132,31 @@ func (bson *Bson) Raw() []byte {
 
 func (bson *Bson) AppendFloat64(name string, value float64) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeFloat64))
+	bson.appendType(BsonTypeFloat64)
 	bson.appendCString(name)
-	bson.raw = bson.order.AppendFloat64(bson.raw, value)
+	bson.appendFloat64(value)
 }
 
 func (bson *Bson) AppendString(name string, value string) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeString))
+	bson.appendType(BsonTypeString)
 	bson.appendCString(name)
-	bson.raw = bson.order.AppendInt32(bson.raw, int32(len(value)+1))
+	bson.appendInt32(int32(len(value)+1))
 	bson.appendCString(value)
 }
 
 func (bson *Bson) AppendBson(name string, value *Bson) {
 	bson.checkBeforeAppend()
-	if bson.order != value.order {
-		panic("the byte order is different")
-	}
-	bson.raw = append(bson.raw, byte(BsonTypeBson))
+	bson.appendType(BsonTypeBson)
 	bson.appendCString(name)
-	bson.raw = append(bson.raw, value.Raw()...)
+	bson.appendBytes(value.Raw()...)
 }
 
 func (bson *Bson) AppendBsonStart(name string) (child *Bson) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeBson))
+	bson.appendType(BsonTypeBson)
 	bson.appendCString(name)
-	child = &Bson{raw: bson.raw, order: bson.order, offset: len(bson.raw)}
+	child = &Bson{raw: bson.raw, offset: len(bson.raw)}
 	child.reserveInt32()
 	bson.inChild = true
 	bson.child = child
@@ -165,19 +180,16 @@ func (bson *Bson) AppendBsonEnd() {
 
 func (bson *Bson) AppendArray(name string, value *BsonArray) {
 	bson.checkBeforeAppend()
-	if bson.order != value.bson.order {
-		panic("the byte order is different")
-	}
-	bson.raw = append(bson.raw, byte(BsonTypeArray))
+	bson.appendType(BsonTypeArray)
 	bson.appendCString(name)
-	bson.raw = append(bson.raw, value.Raw()...)
+	bson.appendBytes(value.Raw()...)
 }
 
 func (bson *Bson) AppendArrayStart(name string) (child *BsonArray) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeArray))
+	bson.appendType(BsonTypeArray)
 	bson.appendCString(name)
-	child = &BsonArray{bson: Bson{raw: bson.raw, order: bson.order, offset: len(bson.raw)}}
+	child = &BsonArray{bson: Bson{raw: bson.raw, offset: len(bson.raw)}}
 	child.bson.reserveInt32()
 	bson.inChild = true
 	bson.child = &child.bson
@@ -204,11 +216,11 @@ func (bson *Bson) AppendBinary(name string, value Binary) {
 	if value.Data == nil {
 		panic("binary is null")
 	}
-	bson.raw = append(bson.raw, byte(BsonTypeBinary))
+	bson.appendType(BsonTypeBinary)
 	bson.appendCString(name)
-	bson.raw = bson.order.AppendInt32(bson.raw, int32(len(value.Data)))
-	bson.raw = append(bson.raw, byte(value.Subtype))
-	bson.raw = append(bson.raw, value.Data...)
+	bson.appendInt32(int32(len(value.Data)))
+	bson.appendBytes(byte(value.Subtype))
+	bson.appendBytes(value.Data...)
 }
 
 func (bson *Bson) AppendObjectId(name string, value ObjectId) {
@@ -216,38 +228,38 @@ func (bson *Bson) AppendObjectId(name string, value ObjectId) {
 	if !value.IsValid() {
 		panic(fmt.Sprintf("invalid ObjectId: %s", value))
 	}
-	bson.raw = append(bson.raw, byte(BsonTypeObjectId))
+	bson.appendType(BsonTypeObjectId)
 	bson.appendCString(name)
-	bson.raw = append(bson.raw, []byte(value)...)
+	bson.appendBytes([]byte(value)...)
 }
 
 func (bson *Bson) AppendBool(name string, value bool) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeBool))
+	bson.appendType(BsonTypeBool)
 	bson.appendCString(name)
 	if value {
-		bson.raw = append(bson.raw, byte(1))
+		bson.appendBytes(byte(1))
 	} else {
-		bson.raw = append(bson.raw, byte(0))
+		bson.appendBytes(byte(0))
 	}
 }
 
 func (bson *Bson) AppendDate(name string, value Date) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeDate))
+	bson.appendType(BsonTypeDate)
 	bson.appendCString(name)
-	bson.raw = bson.order.AppendInt64(bson.raw, int64(value))
+	bson.appendInt64(int64(value))
 }
 
 func (bson *Bson) AppendNull(name string) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeNull))
+	bson.appendType(BsonTypeNull)
 	bson.appendCString(name)
 }
 
 func (bson *Bson) AppendRegex(name string, value RegEx) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeRegEx))
+	bson.appendType(BsonTypeRegEx)
 	bson.appendCString(name)
 	bson.appendCString(value.Pattern)
 	bson.appendCString(value.Options)
@@ -255,35 +267,35 @@ func (bson *Bson) AppendRegex(name string, value RegEx) {
 
 func (bson *Bson) AppendInt32(name string, value int32) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeInt32))
+	bson.appendType(BsonTypeInt32)
 	bson.appendCString(name)
-	bson.raw = bson.order.AppendInt32(bson.raw, value)
+	bson.appendInt32(value)
 }
 
 func (bson *Bson) AppendTimestamp(name string, value Timestamp) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeTimestamp))
+	bson.appendType(BsonTypeTimestamp)
 	bson.appendCString(name)
-	bson.raw = bson.order.AppendInt32(bson.raw, value.Increment)
-	bson.raw = bson.order.AppendInt32(bson.raw, value.Second)
+	bson.appendInt32(value.Increment)
+	bson.appendInt32(value.Second)
 }
 
 func (bson *Bson) AppendInt64(name string, value int64) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeInt64))
+	bson.appendType(BsonTypeInt64)
 	bson.appendCString(name)
-	bson.raw = bson.order.AppendInt64(bson.raw, value)
+	bson.appendInt64(value)
 }
 
 func (bson *Bson) AppendMinKey(name string) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeMinKey))
+	bson.appendType(BsonTypeMinKey)
 	bson.appendCString(name)
 }
 
 func (bson *Bson) AppendMaxKey(name string) {
 	bson.checkBeforeAppend()
-	bson.raw = append(bson.raw, byte(BsonTypeMaxKey))
+	bson.appendType(BsonTypeMaxKey)
 	bson.appendCString(name)
 }
 
@@ -441,7 +453,7 @@ func (bson *Bson) Length() int {
 		panic("the bson is unfinished")
 	}
 
-	return int(bson.order.Int32(bson.raw[bson.offset:]))
+	return int(bytesToInt32(bson.raw[bson.offset:]))
 }
 
 func (bson *Bson) String() string {
