@@ -1051,21 +1051,6 @@ func TestArraySliceDocStruct(t *testing.T) {
 
 func BenchmarkSdbBsonMap(t *testing.B) {
 	for i := 0; i < t.N; i++ {
-		/*m := bson.Map{
-			"int":     int(1),
-			"int8":    int8(2),
-			"float64": float64(123.456),
-			"bson": map[string]interface{}{
-				"i_int": int(10),
-			},
-			"array":    []interface{}{int(1), float64(123.456), "hello", bson.NewObjectId()},
-			"objectid": bson.NewObjectId(),
-			"bool":     true,
-			"null":     nil,
-			"maxkey":   bson.MaxKey,
-			"minkey":   bson.MinKey,
-			"string":   "hello",
-		}*/
 		m := mdata2
 		b := m.Bson()
 		_ = b
@@ -1127,21 +1112,6 @@ func BenchmarkSdbBsonAppendXXX(t *testing.B) {
 func BenchmarkSdbBsonAppend(t *testing.B) {
 	for i := 0; i < t.N; i++ {
 		b := bson.NewBsonBuilder()
-		/*b.Append("bool", pridata.Bool)
-		b.Append("int", (pridata.Int))
-		b.Append("int8", (pridata.Int8))
-		b.Append("int16", (pridata.Int16))
-		b.Append("int32", (pridata.Int32))
-		b.Append("int64", (pridata.Int64))
-		b.Append("uint", (pridata.Uint))
-		b.Append("uint8", (pridata.Uint8))
-		b.Append("uint16", (pridata.Uint16))
-		b.Append("uint32", (pridata.Uint32))
-		b.Append("uint64", (pridata.Uint64))
-		b.Append("uintprt", (pridata.Uintptr))
-		b.Append("float32", (pridata.Float32))
-		b.Append("float64", pridata.Float64)
-		b.Append("string", pridata.String)*/
 		for _, item := range ddata {
 			b.Append(item.Name, item.Value)
 		}

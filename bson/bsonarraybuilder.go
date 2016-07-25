@@ -50,12 +50,30 @@ func (a *BsonArrayBuilder) Finish() *BsonArrayBuilder {
 	return a
 }
 
+func (child *BsonArrayBuilder) AppendArrayEnd() (parent *BsonBuilder) {
+	if child.builder.parent == nil {
+		panic("not in child array")
+	}
+	if !child.builder.finished {
+		panic("the child array is not finished")
+	}
+	if child.builder.raw[len(child.builder.raw)-1] != eod {
+		panic("the child array is not finished")
+	}
+	parent = child.builder.parent
+	parent.raw = child.builder.raw
+	parent.child = nil
+	parent.inChild = false
+	child.builder.parent = nil
+	return parent
+}
+
 func (a *BsonArrayBuilder) Raw() []byte {
 	return a.builder.Raw()
 }
 
 func (a *BsonArrayBuilder) BsonArray() *BsonArray {
-	return &BsonArray{bson:Bson{raw:a.Raw()}}
+	return &BsonArray{bson: Bson{raw: a.Raw()}}
 }
 
 func (a *BsonArrayBuilder) AppendFloat64(value float64) *BsonArrayBuilder {

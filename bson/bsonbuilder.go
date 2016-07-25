@@ -24,6 +24,7 @@ type BsonBuilder struct {
 	raw      []byte
 	offset   int
 	child    *BsonBuilder
+	parent   *BsonBuilder
 	inChild  bool
 	finished bool
 }
@@ -98,7 +99,7 @@ func (b *BsonBuilder) Raw() []byte {
 }
 
 func (b *BsonBuilder) Bson() *Bson {
-	return &Bson{raw:b.Raw()}
+	return &Bson{raw: b.Raw()}
 }
 
 func (b *BsonBuilder) AppendFloat64(name string, value float64) *BsonBuilder {
@@ -126,30 +127,34 @@ func (b *BsonBuilder) AppendBson(name string, value *Bson) *BsonBuilder {
 	return b
 }
 
-func (b *BsonBuilder) AppendBsonStart(name string) (child *BsonBuilder) {
-	b.checkBeforeAppend()
-	b.appendType(BsonTypeBson)
-	b.appendCString(name)
-	child = &BsonBuilder{raw: b.raw, offset: len(b.raw)}
+func (parent *BsonBuilder) AppendBsonStart(name string) (child *BsonBuilder) {
+	parent.checkBeforeAppend()
+	parent.appendType(BsonTypeBson)
+	parent.appendCString(name)
+	child = &BsonBuilder{raw: parent.raw, offset: len(parent.raw)}
 	child.reserveLength()
-	b.inChild = true
-	b.child = child
+	parent.inChild = true
+	parent.child = child
+	child.parent = parent
 	return child
 }
 
-func (b *BsonBuilder) AppendBsonEnd() {
-	if !b.inChild {
+func (child *BsonBuilder) AppendBsonEnd() (parent *BsonBuilder) {
+	if child.parent == nil {
 		panic("not in child bson builder")
 	}
-	if b.finished {
-		panic("the bson builder is finished")
-	}
-	if b.child.raw[len(b.child.raw)-1] != eod {
+	if !child.finished {
 		panic("the child bson builder is not finished")
 	}
-	b.raw = b.child.raw
-	b.child = nil
-	b.inChild = false
+	if child.raw[len(child.raw)-1] != eod {
+		panic("the child bson builder is not finished")
+	}
+	parent = child.parent
+	parent.raw = child.raw
+	child.parent = nil
+	parent.child = nil
+	parent.inChild = false
+	return parent
 }
 
 func (b *BsonBuilder) AppendArray(name string, value *BsonArray) *BsonBuilder {
@@ -160,30 +165,16 @@ func (b *BsonBuilder) AppendArray(name string, value *BsonArray) *BsonBuilder {
 	return b
 }
 
-func (b *BsonBuilder) AppendArrayStart(name string) (child *BsonArrayBuilder) {
-	b.checkBeforeAppend()
-	b.appendType(BsonTypeArray)
-	b.appendCString(name)
-	child = &BsonArrayBuilder{builder: BsonBuilder{raw: b.raw, offset: len(b.raw)}}
+func (parent *BsonBuilder) AppendArrayStart(name string) (child *BsonArrayBuilder) {
+	parent.checkBeforeAppend()
+	parent.appendType(BsonTypeArray)
+	parent.appendCString(name)
+	child = &BsonArrayBuilder{builder: BsonBuilder{raw: parent.raw, offset: len(parent.raw)}}
 	child.builder.reserveLength()
-	b.inChild = true
-	b.child = &child.builder
+	child.builder.parent = parent
+	parent.inChild = true
+	parent.child = &child.builder
 	return child
-}
-
-func (b *BsonBuilder) AppendArrayEnd() {
-	if !b.inChild {
-		panic("not in child array")
-	}
-	if b.finished {
-		panic("the bson is finished")
-	}
-	if b.child.raw[len(b.child.raw)-1] != eod {
-		panic("the child array is not finished")
-	}
-	b.raw = b.child.raw
-	b.child = nil
-	b.inChild = false
 }
 
 func (b *BsonBuilder) AppendBinary(name string, value Binary) *BsonBuilder {
@@ -388,7 +379,7 @@ func (bson *BsonBuilder) Append(name string, value interface{}) {
 		child := bson.AppendBsonStart(name)
 		d.toBsonBuilder(child)
 		child.Finish()
-		bson.AppendBsonEnd()
+		child.AppendBsonEnd()
 	default:
 		v := reflect.ValueOf(value)
 		switch v.Kind() {
@@ -399,7 +390,7 @@ func (bson *BsonBuilder) Append(name string, value interface{}) {
 				child.Append(v.Index(i).Interface())
 			}
 			child.Finish()
-			bson.AppendArrayEnd()
+			child.AppendArrayEnd()
 			return
 		case reflect.Map:
 			child := bson.AppendBsonStart(name)
@@ -407,7 +398,7 @@ func (bson *BsonBuilder) Append(name string, value interface{}) {
 				child.Append(k.String(), v.MapIndex(k).Interface())
 			}
 			child.Finish()
-			bson.AppendBsonEnd()
+			child.AppendBsonEnd()
 			return
 		case reflect.Ptr:
 			if v.IsNil() {
@@ -420,7 +411,7 @@ func (bson *BsonBuilder) Append(name string, value interface{}) {
 			child := bson.AppendBsonStart(name)
 			structToBsonBuilder(v, child)
 			child.Finish()
-			bson.AppendBsonEnd()
+			child.AppendBsonEnd()
 			return
 		}
 		// Complex64, Complex128

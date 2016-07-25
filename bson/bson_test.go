@@ -93,25 +93,21 @@ func TestSingleBsonAppend(t *testing.T) {
 func TestBsonAppendBson(t *testing.T) {
 	expected := `{"outer":"hello", "obj":{"inner":"world"}, "array":["hello world", 123.456]}`
 
-	outer := bson.NewBsonBuilder()
-	outer.AppendString("outer", "hello")
-
-	// append bson
-	obj := outer.AppendBsonStart("obj")
-	obj.AppendString("inner", "world")
-	obj.Finish()
-	outer.AppendBsonEnd()
-
-	// append array
-	array := outer.AppendArrayStart("array")
-	array.AppendString("hello world")
-	array.AppendFloat64(123.456)
-	array.Finish()
-	outer.AppendArrayEnd()
-
-	outer.Finish()
-
-	b:=outer.Bson()
+	b := bson.NewBsonBuilder().
+		AppendString("outer", "hello").
+		// append bson
+		AppendBsonStart("obj").
+		AppendString("inner", "world").
+		Finish().
+		AppendBsonEnd().
+		// append array
+		AppendArrayStart("array").
+		AppendString("hello world").
+		AppendFloat64(123.456).
+		Finish().
+		AppendArrayEnd().
+		Finish().
+		Bson()
 
 	if expected != b.String() {
 		t.Errorf("append bson/array error, expected:%s, actual:%s", expected, b.String())
