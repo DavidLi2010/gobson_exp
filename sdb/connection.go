@@ -107,7 +107,8 @@ func (conn *Conn) CreateCS(name string, options *bson.Doc) error {
 	}
 
 	if rsp.Flags != 0 {
-		return fmt.Errorf("failed to create cs, rc=%d", rsp.Flags)
+		return fmt.Errorf("failed to create cs, error=%s,rc=%d",
+			rsp.Error, rsp.Flags)
 	}
 
 	return nil

@@ -43,7 +43,6 @@ func buildCmdMsg(cmd string, objs ...bson.Doc) *QueryMsg {
 
 	if len(objs) > 1 {
 		msg.Select = objs[1].Bson()
-
 	} else {
 		msg.Select = emptyBson
 	}
@@ -51,7 +50,6 @@ func buildCmdMsg(cmd string, objs ...bson.Doc) *QueryMsg {
 
 	if len(objs) > 2 {
 		msg.OrderBy = objs[2].Bson()
-
 	} else {
 		msg.OrderBy = emptyBson
 	}
@@ -59,7 +57,6 @@ func buildCmdMsg(cmd string, objs ...bson.Doc) *QueryMsg {
 
 	if len(objs) > 3 {
 		msg.Hint = objs[3].Bson()
-
 	} else {
 		msg.Hint = emptyBson
 	}

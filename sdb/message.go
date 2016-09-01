@@ -208,6 +208,7 @@ type ReplyMsg struct {
 	Flags     int32
 	StartFrom int32
 	ReturnNum int32
+	Error     string
 }
 
 func (m *ReplyMsg) Size() int32 {
@@ -219,7 +220,7 @@ func (m *ReplyMsg) Decode(r io.Reader, order binary.ByteOrder) error {
 		return err
 	}
 
-	if m.Length != m.Size() {
+	if m.Length < m.Size() {
 		return fmt.Errorf("invalid msg length: expect %d, actual %d", m.Size(), m.Length)
 	}
 
@@ -233,6 +234,17 @@ func (m *ReplyMsg) Decode(r io.Reader, order binary.ByteOrder) error {
 	m.Flags = int32(order.Uint32(buf[8:]))
 	m.StartFrom = int32(order.Uint32(buf[12:]))
 	m.ReturnNum = int32(order.Uint32(buf[16:]))
+
+	if m.Flags == 0 {
+		return nil
+	}
+
+	buf = make([]byte, m.Length-m.Size())
+	if _, err := io.ReadFull(r, buf); err != nil {
+		return err
+	}
+	errInfo := bson.NewBson(buf)
+	m.Error = errInfo.String()
 
 	return nil
 }
