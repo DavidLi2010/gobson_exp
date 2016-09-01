@@ -12,4 +12,15 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-package bson_test
+package bson
+
+import "testing"
+
+func TestByteOrder(t *testing.T) {
+	x := int32(0x0AEBEC0D)
+	y := int32(0x0DECEB0A)
+	r := RevertInt32(x)
+	if r != y {
+		t.Errorf("expect %v, get %v", y, r)
+	}
+}

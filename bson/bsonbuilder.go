@@ -20,6 +20,9 @@ import (
 	"reflect"
 )
 
+const initialBufferSize = 64
+const eod = byte(0x00) // end of doc
+
 type BsonBuilder struct {
 	raw      []byte
 	offset   int

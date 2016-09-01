@@ -21,7 +21,7 @@ import (
 
 	"reflect"
 
-	"github.com/DavidLi2010/gobson_exp/bson"
+	"github.com/davidli2010/gobson_exp/bson"
 )
 
 type primary struct {

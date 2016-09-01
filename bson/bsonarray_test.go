@@ -17,7 +17,7 @@ package bson_test
 import (
 	"testing"
 
-	"github.com/DavidLi2010/gobson_exp/bson"
+	"github.com/davidli2010/gobson_exp/bson"
 )
 
 func TestBsonArray(t *testing.T) {

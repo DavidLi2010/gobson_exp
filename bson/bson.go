@@ -24,11 +24,8 @@ type Bson struct {
 	raw []byte
 }
 
-const initialBufferSize = 64
-const eod = byte(0x00) // end of doc
-
 func NewBson(raw []byte) *Bson {
-	return &Bson{raw:raw}
+	return &Bson{raw: raw}
 }
 
 func (bson *Bson) Validate() (err error) {
