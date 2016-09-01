@@ -21,6 +21,8 @@ import (
 
 	"fmt"
 
+	"errors"
+
 	"github.com/davidli2010/gobson_exp/bson"
 )
 
@@ -144,7 +146,10 @@ func (m *SysInfoReply) Decode(r io.Reader, order binary.ByteOrder) error {
 	if err := m.SysInfoMsgHeader.Decode(r, order); err != nil {
 		return err
 	}
-	var b [4]byte
+	if m.Length != sysInfoReplySize {
+		return errors.New("invalid sysinfo reply size")
+	}
+	var b [sysInfoReplySize - sysInfoMsgHeaderSize]byte
 	buf := b[:]
 	if _, err := io.ReadFull(r, buf); err != nil {
 		return err

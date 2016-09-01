@@ -16,6 +16,8 @@ package sdb
 
 import "github.com/davidli2010/gobson_exp/bson"
 
+var emptyBson = bson.NewBsonBuilder().Finish().Bson()
+
 func buildCmdMsg(cmd string, objs ...bson.Doc) *QueryMsg {
 	var msg QueryMsg
 	msgLen := msg.FixedSize()
@@ -29,25 +31,39 @@ func buildCmdMsg(cmd string, objs ...bson.Doc) *QueryMsg {
 	msgLen += alignedSize(msg.NameLength+1, 4)
 
 	if len(objs) > 4 {
-		panic("four doc at most")
+		panic("four docs at most")
 	}
 
 	if len(objs) > 0 {
 		msg.Where = objs[0].Bson()
-		msgLen += alignedSize(int32(msg.Where.Length()), 4)
+	} else {
+		msg.Where = emptyBson
 	}
+	msgLen += alignedSize(int32(msg.Where.Length()), 4)
+
 	if len(objs) > 1 {
 		msg.Select = objs[1].Bson()
-		msgLen += alignedSize(int32(msg.Select.Length()), 4)
+
+	} else {
+		msg.Select = emptyBson
 	}
+	msgLen += alignedSize(int32(msg.Select.Length()), 4)
+
 	if len(objs) > 2 {
 		msg.OrderBy = objs[2].Bson()
-		msgLen += alignedSize(int32(msg.OrderBy.Length()), 4)
+
+	} else {
+		msg.OrderBy = emptyBson
 	}
+	msgLen += alignedSize(int32(msg.OrderBy.Length()), 4)
+
 	if len(objs) > 3 {
 		msg.Hint = objs[3].Bson()
-		msgLen += alignedSize(int32(msg.Hint.Length()), 4)
+
+	} else {
+		msg.Hint = emptyBson
 	}
+	msgLen += alignedSize(int32(msg.Hint.Length()), 4)
 
 	msg.Length = msgLen
 	return &msg

@@ -20,7 +20,7 @@ import (
 )
 
 func TestNewConnection(t *testing.T) {
-	conn, err := NewConnection("192.168.100.54:11810")
+	conn, err := Connect("192.168.100.54:11810")
 	if err != nil {
 		t.Error(err)
 	}

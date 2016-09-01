@@ -27,7 +27,7 @@ import (
 	"github.com/davidli2010/gobson_exp/bson"
 )
 
-type Connection struct {
+type Conn struct {
 	host      string
 	conn      net.Conn
 	order     binary.ByteOrder
@@ -36,7 +36,7 @@ type Connection struct {
 	requestId uint64
 }
 
-func NewConnection(host string) (*Connection, error) {
+func Connect(host string) (*Conn, error) {
 	addr, addrErr := net.ResolveTCPAddr("tcp", host)
 	if addrErr != nil {
 		return nil, addrErr
@@ -81,7 +81,7 @@ func NewConnection(host string) (*Connection, error) {
 		return nil, errors.New("Invalid eyecatcher")
 	}
 
-	return &Connection{
+	return &Conn{
 		host:   host,
 		conn:   conn,
 		order:  order,
@@ -90,11 +90,11 @@ func NewConnection(host string) (*Connection, error) {
 	}, nil
 }
 
-func (conn *Connection) Close() error {
+func (conn *Conn) Close() error {
 	return conn.conn.Close()
 }
 
-func (conn *Connection) CreateCS(name string, options *bson.Doc) error {
+func (conn *Conn) CreateCS(name string, options *bson.Doc) error {
 	cmd := cmdCreateCS{name, options}
 	msg := cmd.buildMsg()
 	if err := msg.Encode(conn.conn, conn.order); err != nil {
