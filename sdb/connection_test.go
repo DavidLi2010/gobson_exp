@@ -20,7 +20,7 @@ import (
 )
 
 func TestNewConnection(t *testing.T) {
-	conn, err := Connect("192.168.100.54:11810")
+	conn, err := Connect("192.168.0.104:11810")
 	if err != nil {
 		t.Error(err)
 	}
@@ -29,6 +29,18 @@ func TestNewConnection(t *testing.T) {
 	fmt.Printf("conn.osType=%v\n", conn.osType)
 
 	if err := conn.CreateCS("foo", nil); err != nil {
+		t.Error(err)
+	}
+
+	if err := conn.CreateCL("foo", "bar", nil); err != nil {
+		t.Error(err)
+	}
+
+	if err := conn.DropCL("foo", "bar"); err != nil {
+		t.Error(err)
+	}
+
+	if err := conn.DropCS("foo"); err != nil {
 		t.Error(err)
 	}
 

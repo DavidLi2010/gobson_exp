@@ -31,7 +31,7 @@ func buildCmdMsg(cmd string, objs ...bson.Doc) *QueryMsg {
 	msgLen += alignedSize(msg.NameLength+1, 4)
 
 	if len(objs) > 4 {
-		panic("four docs at most")
+		panic("Four docs at most")
 	}
 
 	if len(objs) > 0 {
@@ -72,7 +72,16 @@ func alignedSize(original, bytes int32) int32 {
 	return size
 }
 
-const cmdNameCreateCS = "$create collectionspace"
+const (
+	cmdNameCreateCS = "$create collectionspace"
+	cmdNameDropCS   = "$drop collectionspace"
+	cmdNameCreateCL = "$create collection"
+	cmdNameDropCL   = "$drop collection"
+)
+
+type Cmd interface {
+	buildMsg() *QueryMsg
+}
 
 type cmdCreateCS struct {
 	Name    string
@@ -83,8 +92,45 @@ func (c *cmdCreateCS) buildMsg() *QueryMsg {
 	var doc bson.Doc
 	doc = append(doc, bson.DocElement{"Name", c.Name})
 	if c.Options != nil {
-		doc = append(doc, bson.DocElement{"Options", *c.Options})
+		doc = append(doc, *c.Options...)
 	}
 
 	return buildCmdMsg(cmdNameCreateCS, doc)
+}
+
+type cmdDropCS struct {
+	Name string
+}
+
+func (c *cmdDropCS) buildMsg() *QueryMsg {
+	doc := bson.Doc{{"Name", c.Name}}
+	return buildCmdMsg(cmdNameDropCS, doc)
+}
+
+type cmdCreateCL struct {
+	CSName  string
+	CLName  string
+	Options *bson.Doc
+}
+
+func (c *cmdCreateCL) buildMsg() *QueryMsg {
+	var doc bson.Doc
+	fullName := c.CSName + "." + c.CLName
+	doc = append(doc, bson.DocElement{"Name", fullName})
+	if c.Options != nil {
+		doc = append(doc, *c.Options...)
+	}
+
+	return buildCmdMsg(cmdNameCreateCL, doc)
+}
+
+type cmdDropCL struct {
+	CSName string
+	CLName string
+}
+
+func (c *cmdDropCL) buildMsg() *QueryMsg {
+	fullName := c.CSName + "." + c.CLName
+	doc := bson.Doc{{"Name", fullName}}
+	return buildCmdMsg(cmdNameDropCL, doc)
 }

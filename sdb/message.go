@@ -48,6 +48,8 @@ const (
 
 	QueryReqMsg = MsgCode(2004)
 	QueryRspMsg = QueryReqMsg | RspMsgMask
+
+	DisconnectReqMsg = MsgCode(2008)
 )
 
 type SysInfoMsgHeader struct {
@@ -254,6 +256,25 @@ func (m *ReplyMsg) Decode(r io.Reader, order binary.ByteOrder) error {
 type AuthMsg struct {
 	MsgHeader
 	Data bson.Bson
+}
+
+// DisconnectMsg-------------------------
+
+type DisconnectMsg struct {
+	MsgHeader
+}
+
+func NewDisconnectMsg() *DisconnectMsg {
+	return &DisconnectMsg{
+		MsgHeader{
+			Length: msgHeaderSize,
+			OpCode: DisconnectReqMsg,
+		},
+	}
+}
+
+func (m *DisconnectMsg) Encode(w io.Writer, order binary.ByteOrder) error {
+	return m.MsgHeader.Encode(w, order)
 }
 
 // QueryMsg------------------------------
