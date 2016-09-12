@@ -73,10 +73,12 @@ func alignedSize(original, bytes int32) int32 {
 }
 
 const (
-	cmdNameCreateCS = "$create collectionspace"
-	cmdNameDropCS   = "$drop collectionspace"
-	cmdNameCreateCL = "$create collection"
-	cmdNameDropCL   = "$drop collection"
+	cmdNameCreateCS    = "$create collectionspace"
+	cmdNameDropCS      = "$drop collectionspace"
+	cmdNameCreateCL    = "$create collection"
+	cmdNameDropCL      = "$drop collection"
+	cmdNameCreateIndex = "$create index"
+	cmdNameDropIndex   = "$drop index"
 )
 
 type Cmd interface {
@@ -89,8 +91,9 @@ type cmdCreateCS struct {
 }
 
 func (c *cmdCreateCS) buildMsg() *QueryMsg {
-	var doc bson.Doc
-	doc = append(doc, bson.DocElement{"Name", c.Name})
+	doc := bson.Doc{
+		{"Name", c.Name},
+	}
 	if c.Options != nil {
 		doc = append(doc, *c.Options...)
 	}
@@ -103,7 +106,9 @@ type cmdDropCS struct {
 }
 
 func (c *cmdDropCS) buildMsg() *QueryMsg {
-	doc := bson.Doc{{"Name", c.Name}}
+	doc := bson.Doc{
+		{"Name", c.Name},
+	}
 	return buildCmdMsg(cmdNameDropCS, doc)
 }
 
@@ -114,9 +119,10 @@ type cmdCreateCL struct {
 }
 
 func (c *cmdCreateCL) buildMsg() *QueryMsg {
-	var doc bson.Doc
 	fullName := c.CSName + "." + c.CLName
-	doc = append(doc, bson.DocElement{"Name", fullName})
+	doc := bson.Doc{
+		{"Name", fullName},
+	}
 	if c.Options != nil {
 		doc = append(doc, *c.Options...)
 	}
@@ -131,6 +137,72 @@ type cmdDropCL struct {
 
 func (c *cmdDropCL) buildMsg() *QueryMsg {
 	fullName := c.CSName + "." + c.CLName
-	doc := bson.Doc{{"Name", fullName}}
+	doc := bson.Doc{
+		{"Name", fullName},
+	}
 	return buildCmdMsg(cmdNameDropCL, doc)
+}
+
+type cmdCreateIndex struct {
+	CSName      string
+	CLName      string
+	IndexName   string
+	IndexDefine bson.Doc
+	Options     *bson.Doc
+}
+
+func (c *cmdCreateIndex) buildMsg() *QueryMsg {
+	fullName := c.CSName + "." + c.CLName
+
+	var m bson.Map
+	if c.Options != nil {
+		m = c.Options.Map()
+	}
+
+	var unique bool
+	if v, exist := m["unique"]; exist {
+		unique = v.(bool)
+	}
+
+	var enforced bool
+	if v, exist := m["enforced"]; exist {
+		enforced = v.(bool)
+	}
+
+	index := bson.Doc{
+		{"name", c.IndexName},
+		{"key", c.IndexDefine},
+		{"unique", unique},
+		{"enforced", enforced},
+	}
+
+	doc := bson.Doc{
+		{"Collection", fullName},
+		{"Index", index},
+	}
+
+	hint := bson.Doc{}
+	if v, exist := m["sortBufferSize"]; exist {
+		hint = append(hint, bson.DocElement{"SortBufferSize", v.(int)})
+	}
+
+	return buildCmdMsg(cmdNameCreateIndex, doc, bson.Doc{}, bson.Doc{}, hint)
+}
+
+type cmdDropIndex struct {
+	CSName    string
+	CLName    string
+	IndexName string
+}
+
+func (c *cmdDropIndex) buildMsg() *QueryMsg {
+	fullName := c.CSName + "." + c.CLName
+	index := bson.Doc{
+		{"", c.IndexName},
+	}
+	doc := bson.Doc{
+		{"Collection", fullName},
+		{"Index", index},
+	}
+	return buildCmdMsg(cmdNameDropIndex, doc)
 }

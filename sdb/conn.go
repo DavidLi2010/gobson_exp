@@ -22,8 +22,6 @@ import (
 
 	"time"
 
-	"fmt"
-
 	"github.com/davidli2010/gobson_exp/bson"
 )
 
@@ -97,44 +95,4 @@ func (conn *Conn) Close() error {
 	}
 
 	return conn.conn.Close()
-}
-
-func (conn *Conn) runCmd(cmd Cmd) error {
-	msg := cmd.buildMsg()
-
-	if err := msg.Encode(conn.conn, conn.order); err != nil {
-		return err
-	}
-
-	var rsp ReplyMsg
-	if err := rsp.Decode(conn.conn, conn.order); err != nil {
-		return err
-	}
-
-	if rsp.Flags != 0 {
-		return fmt.Errorf("error=%s,rc=%d",
-			rsp.Error, rsp.Flags)
-	}
-
-	return nil
-}
-
-func (conn *Conn) CreateCS(name string, options *bson.Doc) error {
-	cmd := &cmdCreateCS{name, options}
-	return conn.runCmd(cmd)
-}
-
-func (conn *Conn) DropCS(name string) error {
-	cmd := &cmdDropCS{name}
-	return conn.runCmd(cmd)
-}
-
-func (conn *Conn) CreateCL(csName, clName string, options *bson.Doc) error {
-	cmd := &cmdCreateCL{csName, clName, options}
-	return conn.runCmd(cmd)
-}
-
-func (conn *Conn) DropCL(csName, clName string) error {
-	cmd := &cmdDropCL{csName, clName}
-	return conn.runCmd(cmd)
 }

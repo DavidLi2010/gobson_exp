@@ -15,32 +15,46 @@
 package sdb
 
 import (
-	"fmt"
 	"testing"
+
+	"github.com/davidli2010/gobson_exp/bson"
 )
 
 func TestNewConnection(t *testing.T) {
-	conn, err := Connect("192.168.0.104:11810")
+	conn, err := Connect("192.168.100.53:11810")
 	if err != nil {
 		t.Error(err)
 	}
 
-	fmt.Printf("conn.order=%v\n", conn.order)
-	fmt.Printf("conn.osType=%v\n", conn.osType)
+	cs := "foo"
+	cl := "bar"
 
-	if err := conn.CreateCS("foo", nil); err != nil {
+	if err := conn.CreateCS(cs, nil); err != nil {
 		t.Error(err)
 	}
 
-	if err := conn.CreateCL("foo", "bar", nil); err != nil {
+	if err := conn.CreateCL(cs, cl, nil); err != nil {
 		t.Error(err)
 	}
 
-	if err := conn.DropCL("foo", "bar"); err != nil {
+	indexOptions := bson.Doc{
+		{"unique", true},
+		{"enforced", true},
+		{"sorBufferSize", 128},
+	}
+	if err := conn.CreateIndex(cs, cl, "a_idx", bson.Doc{{"a", 1}}, &indexOptions); err != nil {
 		t.Error(err)
 	}
 
-	if err := conn.DropCS("foo"); err != nil {
+	if err := conn.DropIndex(cs, cl, "a_idx"); err != nil {
+		t.Error(err)
+	}
+
+	if err := conn.DropCL(cs, cl); err != nil {
+		t.Error(err)
+	}
+
+	if err := conn.DropCS(cs); err != nil {
 		t.Error(err)
 	}
 

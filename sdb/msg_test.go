@@ -13,14 +13,3 @@
 // under the License.
 
 package sdb
-
-import (
-	"encoding/binary"
-	"fmt"
-	"testing"
-)
-
-func TestSysInfoMsg(t *testing.T) {
-	//fmt.Println(binary.Size(SysInfoRequest{}))
-	fmt.Println(binary.Size(MsgHeader{}))
-}

@@ -34,6 +34,14 @@ func (d Doc) Bson() *Bson {
 	return b.Bson()
 }
 
+func (d Doc) Map() Map {
+	m := Map{}
+	for _, e := range d {
+		m[e.Name] = e.Value
+	}
+	return m
+}
+
 func (d Doc) String() string {
 	return d.Bson().String()
 }
