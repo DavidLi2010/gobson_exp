@@ -46,6 +46,10 @@ func TestNewConnection(t *testing.T) {
 		t.Error(err)
 	}
 
+	if err := conn.Insert(cs+"."+cl, bson.Doc{{"a", 123456}}); err != nil {
+		t.Error(err)
+	}
+
 	if err := conn.DropIndex(cs, cl, "a_idx"); err != nil {
 		t.Error(err)
 	}

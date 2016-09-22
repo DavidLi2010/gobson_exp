@@ -46,6 +46,9 @@ const (
 	RspMsgMask   = MsgCode(0x80000000)
 	RspMsgUnmask = MsgCode(0x7FFFFFFF)
 
+	InsertReqMsg = MsgCode(2002)
+	InsertRspMsg = InsertReqMsg | RspMsgMask
+
 	QueryReqMsg = MsgCode(2004)
 	QueryRspMsg = QueryReqMsg | RspMsgMask
 
@@ -363,6 +366,59 @@ func writeBson(w io.Writer, b bson.Bson) error {
 	paddingLen := alignedSize(int32(b.Length()), 4) - int32(b.Length())
 	if paddingLen > 0 {
 		if _, err := w.Write(make([]byte, paddingLen)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// QueryMsg------------------------------
+
+type InsertMsg struct {
+	MsgHeader
+	Version    int32
+	W          int16
+	padding    uint16
+	Flags      int32
+	NameLength int32
+	Name       []byte
+	Doc        *bson.Bson
+}
+
+func (m *InsertMsg) FixedSize() int32 {
+	return m.MsgHeader.Size() + 16
+}
+
+func (m *InsertMsg) Encode(w io.Writer, order binary.ByteOrder) error {
+	if err := m.MsgHeader.Encode(w, order); err != nil {
+		return err
+	}
+
+	var b [16]byte
+	buf := b[:]
+	order.PutUint32(buf, uint32(m.Version))
+	order.PutUint16(buf[4:], uint16(m.W))
+	order.PutUint16(buf[6:], m.padding)
+	order.PutUint32(buf[8:], uint32(m.Flags))
+	order.PutUint32(buf[12:], uint32(m.NameLength))
+	if _, err := w.Write(buf); err != nil {
+		return err
+	}
+
+	if _, err := w.Write(m.Name); err != nil {
+		return err
+	}
+
+	paddingLen := alignedSize(m.NameLength+1, 4) - m.NameLength
+	if paddingLen > 0 {
+		if _, err := w.Write(make([]byte, paddingLen)); err != nil {
+			return err
+		}
+	}
+
+	if m.Doc != nil {
+		if err := writeBson(w, *m.Doc); err != nil {
 			return err
 		}
 	}
