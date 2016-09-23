@@ -56,20 +56,61 @@ func (conn *Conn) Insert(cl string, doc bson.Doc) error {
 	return nil
 }
 
-/*
-func (conn *Conn) Delete(csName, clName string, condition *bson.Doc, hint *bson.Doc) error {
+func buildDeleteMsg(cl string, condition *bson.Doc, hint *bson.Doc) *DeleteMsg {
+	var msg DeleteMsg
+	msgLen := msg.FixedSize()
 
+	msg.OpCode = DeleteReqMsg
+	msg.NameLength = int32(len(cl))
+	msg.Name = []byte(cl)
+	msgLen += alignedSize(msg.NameLength+1, 4)
+
+	if condition != nil {
+		msg.Condition = condition.Bson()
+	} else {
+		msg.Condition = emptyBson
+	}
+
+	msgLen += alignedSize(int32(msg.Condition.Length()), 4)
+
+	if hint != nil {
+		msg.Hint = hint.Bson()
+	} else {
+		msg.Hint = emptyBson
+	}
+
+	msgLen += alignedSize(int32(msg.Hint.Length()), 4)
+
+	msg.Length = msgLen
+	return &msg
 }
 
+func (conn *Conn) Delete(cl string, condition *bson.Doc, hint *bson.Doc) error {
+	msg := buildDeleteMsg(cl, condition, hint)
+
+	if err := msg.Encode(conn.conn, conn.order); err != nil {
+		return err
+	}
+
+	var rsp ReplyMsg
+	if err := rsp.Decode(conn.conn, conn.order); err != nil {
+		return err
+	}
+
+	if rsp.Flags != 0 {
+		return fmt.Errorf("error=%s,rc=%d",
+			rsp.Error, rsp.Flags)
+	}
+
+	return nil
+}
+
+/*
 func (conn *Conn) Truncate(csName, clName string) error {
 
 }
 
 func (conn *Conn) Update(csName, clName string, rule *bson.Doc, condition *bson.Doc, hint *bson.Doc) error {
-
-}
-
-func (conn *Conn) Upsert(csName, clName string, rule *bson.Doc, condition *bson.Doc, hint *bson.Doc, set *bson.Doc) error {
 
 }
 

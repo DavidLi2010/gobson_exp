@@ -46,7 +46,15 @@ func TestNewConnection(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := conn.Insert(cs+"."+cl, bson.Doc{{"a", 123456}}); err != nil {
+	if err := conn.Insert(cs+"."+cl, bson.Doc{{"a", 123}}); err != nil {
+		t.Error(err)
+	}
+
+	if err := conn.Insert(cs+"."+cl, bson.Doc{{"a", 456}}); err != nil {
+		t.Error(err)
+	}
+
+	if err := conn.Delete(cs+"."+cl, nil, nil); err != nil {
 		t.Error(err)
 	}
 
