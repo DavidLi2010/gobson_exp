@@ -77,6 +77,7 @@ const (
 	cmdNameDropCS      = "$drop collectionspace"
 	cmdNameCreateCL    = "$create collection"
 	cmdNameDropCL      = "$drop collection"
+	cmdNameTruncateCL  = "$truncate"
 	cmdNameCreateIndex = "$create index"
 	cmdNameDropIndex   = "$drop index"
 )
@@ -205,4 +206,17 @@ func (c *cmdDropIndex) buildMsg() *QueryMsg {
 		{"Index", index},
 	}
 	return buildCmdMsg(cmdNameDropIndex, doc)
+}
+
+type cmdTruncateCL struct {
+	CSName string
+	CLName string
+}
+
+func (c *cmdTruncateCL) buildMsg() *QueryMsg {
+	fullName := c.CSName + "." + c.CLName
+	doc := bson.Doc{
+		{"Collection", fullName},
+	}
+	return buildCmdMsg(cmdNameTruncateCL, doc)
 }

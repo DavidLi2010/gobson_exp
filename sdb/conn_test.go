@@ -58,6 +58,10 @@ func TestNewConnection(t *testing.T) {
 		t.Error(err)
 	}
 
+	if err := conn.TruncateCL(cs, cl); err != nil {
+		t.Error(err)
+	}
+
 	if err := conn.DropIndex(cs, cl, "a_idx"); err != nil {
 		t.Error(err)
 	}

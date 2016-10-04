@@ -60,6 +60,12 @@ func (conn *Conn) DropCL(csName, clName string) error {
 	return conn.runCmd(cmd)
 }
 
+func (conn *Conn) TruncateCL(csName, clName string) error {
+	cmd := &cmdTruncateCL{csName, clName}
+	return conn.runCmd(cmd)
+
+}
+
 func (conn *Conn) CreateIndex(csName, clName, indexName string, indexDefine bson.Doc, options *bson.Doc) error {
 	cmd := &cmdCreateIndex{csName, clName, indexName, indexDefine, options}
 	return conn.runCmd(cmd)

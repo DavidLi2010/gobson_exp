@@ -106,10 +106,6 @@ func (conn *Conn) Delete(cl string, condition *bson.Doc, hint *bson.Doc) error {
 }
 
 /*
-func (conn *Conn) Truncate(csName, clName string) error {
-
-}
-
 func (conn *Conn) Update(csName, clName string, rule *bson.Doc, condition *bson.Doc, hint *bson.Doc) error {
 
 }
