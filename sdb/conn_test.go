@@ -28,6 +28,7 @@ func TestNewConnection(t *testing.T) {
 
 	cs := "foo"
 	cl := "bar"
+	clFull := cs + "." + cl
 
 	if err := conn.CreateCS(cs, nil); err != nil {
 		t.Error(err)
@@ -46,15 +47,36 @@ func TestNewConnection(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := conn.Insert(cs+"."+cl, bson.Doc{{"a", 123}}); err != nil {
+	if err := conn.Insert(clFull, bson.Doc{{"a", 123}}); err != nil {
 		t.Error(err)
 	}
 
-	if err := conn.Insert(cs+"."+cl, bson.Doc{{"a", 456}}); err != nil {
+	if err := conn.Insert(clFull, bson.Doc{{"a", 456}}); err != nil {
 		t.Error(err)
 	}
 
-	if err := conn.Delete(cs+"."+cl, nil, nil); err != nil {
+	rule := bson.Doc{
+		{"$set", bson.Doc{{"a", 234}}},
+	}
+	if err := conn.Update(clFull, rule, &bson.Doc{{"a", 123}}, nil); err != nil {
+		t.Error(err)
+	}
+
+	rule2 := bson.Doc{
+		{"$set", bson.Doc{{"a", 567}}},
+	}
+	if err := conn.Upsert(clFull, rule2, &bson.Doc{{"a", 456}}, nil, nil); err != nil {
+		t.Error(err)
+	}
+
+	rule3 := bson.Doc{
+		{"$set", bson.Doc{{"a", 890}}},
+	}
+	if err := conn.Upsert(clFull, rule3, &bson.Doc{{"a", 789}}, nil, &bson.Doc{{"b", 123}}); err != nil {
+		t.Error(err)
+	}
+
+	if err := conn.Delete(clFull, nil, nil); err != nil {
 		t.Error(err)
 	}
 
